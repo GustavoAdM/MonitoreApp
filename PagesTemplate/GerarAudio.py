@@ -4,7 +4,7 @@ import tempfile
 
 def gerar_audio():
     # Configuração da página
-    st.title("📖 Texto para Fala com gTTS")
+    st.title("📖 Texto para Fala")
     st.write("Carregue um arquivo de texto e escute a narração!")
 
     # Upload do arquivo de texto

@@ -5,11 +5,12 @@ Este é um aplicativo web desenvolvido em Python 3 utilizando o Streamlit, com i
 Além de monitorar os pedidos, o aplicativo fornece visualizações dinâmicas de desempenho com gráficos interativos criados com Plotly Express, oferecendo insights valiosos para a otimização de processos.
 Funcionalidades
 
-O aplicativo possui três abas principais:
+O aplicativo possui quatro abas principais:
 
 - Monitoramento de Pedidos: Acompanhamento em tempo real do status dos pedidos e processos.
 - Auditoria: Registro e análise das atividades realizadas, promovendo transparência e rastreabilidade.
 - Dashboard: Visualização gráfica do desempenho do sistema, com filtros personalizados para facilitar a interpretação dos dados.
+- Gerar Audio: Apartir de um arquivo de texto, consgue converter para um audio, usando biblioteca gTTS.
 
 Filtros Personalizados
 
