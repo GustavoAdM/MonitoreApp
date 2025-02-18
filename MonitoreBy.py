@@ -22,6 +22,6 @@ menu = st.navigation([st.Page(acompanhamento, title="Acompanhamento"),
                       st.Page(auditoria, title="Auditoria"), 
                       st.Page(view_processo, title="View Separação"),
                       st.Page(estoque_wms, title="Estoque WMS"),
-                     # st.Page(gerar_audio, title="Gerar Audio"),
+                      st.Page(gerar_audio, title="Gerar Audio"),
                       ])
 menu.run()
