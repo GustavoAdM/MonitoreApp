@@ -3,6 +3,7 @@ from PagesTemplate.Auditoria import auditoria
 from PagesTemplate.Processo import acompanhamento
 from PagesTemplate.ViewProcesso import view_processo
 from PagesTemplate.estoqueWMS import estoque_wms
+from PagesTemplate.GerarAudio import gerar_audio
 import warnings
 
 warnings.simplefilter(action='ignore', category=UserWarning)
@@ -21,5 +22,6 @@ menu = st.navigation([st.Page(acompanhamento, title="Acompanhamento"),
                       st.Page(auditoria, title="Auditoria"), 
                       st.Page(view_processo, title="View Separação"),
                       st.Page(estoque_wms, title="Estoque WMS"),
+                     # st.Page(gerar_audio, title="Gerar Audio"),
                       ])
 menu.run()

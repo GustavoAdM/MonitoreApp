@@ -4,7 +4,6 @@ from st_aggrid import AgGrid, GridOptionsBuilder
 
 
 def auditoria():
-    #st_autorefresh(interval=600000, key="AUDITORIA_VIEW")
     st.markdown("""
          <style> 
             .st-key-fizzbuzzcounter {
