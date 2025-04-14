@@ -12,7 +12,8 @@ def acompanhamento():
     with st.sidebar:
         st.info("Atualização: 20seg")
         empresa = st.pills("Selecione a empresa: ", options=[7, 40, 50, 60])
-        pedidos = st.number_input("Consultar Pedido", value=None)
+        pedidos = st.number_input("Consultar Pedido", value=0)
+        vendedor = st.number_input("Consultar Vendedor", value=0)
 
     if empresa is not None:
         col1, col2= st.columns(2)
@@ -21,19 +22,25 @@ def acompanhamento():
                 with st.container(border=True, key="Separação", height=380):
                     st.markdown("Separação", unsafe_allow_html=True)
 
-                    separacao_df = acompanhamento_separacao(cd_empresa=empresa, pedidos=pedidos)
+                    separacao_df = acompanhamento_separacao(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
   
                     gb = GridOptionsBuilder.from_dataframe(separacao_df)
                     
                     coluns_name = {"HORA_DATA": "Horario", "PRIORIDADE": "Prioridade", "NR_PEDIDO":"Pedido", "VALOR": "Valor", 
-                                   "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador"}
+                                   "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador", "TEMPO": "Separação"}
                     
                     for old_name, new_name in coluns_name.items():
                         gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
                         if old_name == "NM_PESSOA":
-                            gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=250, minWidth=250)
+                            gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
                         elif old_name == "SEPARADOR":
                             gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
+                        elif old_name == "VALOR":
+                            gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=85, minWidth=85)
+                        elif old_name == "TEMPO":
+                            gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=110, minWidth=110)
+                        elif old_name == "CD_VENDEDOR":
+                            gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=110, minWidth=110)
                         
             
                     #gb.configure_pagination(paginationAutoPageSize=True) # Paginação automática
@@ -43,21 +50,21 @@ def acompanhamento():
             with col2:
                 with st.container(border=True, height=380, key="Conferencia"): 
                     st.markdown("Conferência", unsafe_allow_html=True)
-                    conferencia = acompanhamento_conferencia(cd_empresa=empresa, pedidos=pedidos)    
+                    conferencia = acompanhamento_conferencia(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)    
 
                     gb2 = GridOptionsBuilder.from_dataframe(conferencia)
                     coluns_name_2 = {"HORA_DATA": "Horario", "PRIORIDADE": "Prioridade", "NR_PEDIDO_2":"Pedido", "VALOR": "Valor", 
-                                   "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador"}
+                                   "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador", "TEMPO_CONFERENCIA": "Conferencia"}
                     
 
                     for old_name, new_name in coluns_name_2.items():
                         gb2.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
                         if old_name == "NM_PESSOA":
                             gb2.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=250, minWidth=250)
-                        if old_name == "SEPARADOR":
+                        elif old_name == "SEPARADOR":
                             gb2.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
-                        
-                            
+                        elif old_name == "VALOR":
+                            gb2.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=85, minWidth=85)     
 
                     gridOptions_2 = gb2.build()
                     AgGrid(conferencia, gridOptions=gridOptions_2, height=300) 
@@ -67,7 +74,7 @@ def acompanhamento():
             with col3:
                 with st.container(border=True, height=380, key="Faturamento"): 
                     st.markdown("Faturamento", unsafe_allow_html=True)
-                    faturamento = acompanhamento_faturamento(cd_empresa=empresa, pedidos=pedidos)
+                    faturamento = acompanhamento_faturamento(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
 
                     gb3 = GridOptionsBuilder.from_dataframe(faturamento)
                     coluns_name_3 ={"HORA_DATA": "Horario", "PRIORIDADE": "Prioridade", "NR_PEDIDO_3":"Pedido", "VALOR": "Valor", 
@@ -76,8 +83,8 @@ def acompanhamento():
                     for old_name, new_name in coluns_name_3.items():
                         gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
                         if old_name == "NM_PESSOA":
-                            gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=250, minWidth=250)
-                        if old_name == "SEPARADOR":
+                            gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
+                        elif old_name == "SEPARADOR":
                             gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
                        
                     gridOptions_2 = gb3.build()
@@ -86,7 +93,7 @@ def acompanhamento():
             with col4:
                 with st.container(border=True, height=380, key="PENDENTE_ENTREGA"): 
                     st.markdown("Aguardando Entrega - Motoboy & Despache")
-                    motoboy_entrega = acompanhamento_entrega(cd_empresa=empresa, pedidos=pedidos)
+                    motoboy_entrega = acompanhamento_entrega(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
 
                     gb4 = GridOptionsBuilder.from_dataframe(motoboy_entrega)
 
@@ -96,7 +103,7 @@ def acompanhamento():
                     for old_name, new_name in coluns_name_4.items():
                         gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
                         if old_name == "NM_PESSOA":
-                            gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=250, minWidth=250)
+                            gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
                         if old_name == "SEPARADOR":
                             gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
 

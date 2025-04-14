@@ -14,10 +14,13 @@ def clear_text_input():
         <style>
             div[data-testid="stVerticalBlockBorderWrapper"]  {
                 position: relative;
-                top: 10px;
+                top: 10px;    
             }
             #ds_secao  {
                 margin: 0;    
+            }
+            .st-key-INFO_ITEM div[data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) {
+                background: rgba(173, 216, 230, 0.3);  
             }
         </style>
         """)
@@ -30,12 +33,12 @@ def clear_text_input():
                 with st.container(border=True, key=f"sub_info_{idx}", height=75):
                     st.html(f"""
                         <p style="font-size: 16px; display: flex; justify-content: space-between; margin: 0;">
-                            <span>Desc: {row['DS_ITEM']}</span>
-                            <span>Cod Barra: {row['CD_CODIGOBARRA']}</span>
-                            <span>Marca: {row['DS_MARCA']}</span>
-                            <span>Local: {row['DS_LOCAL']}</span>
-                            <span>Fornecedor: {row['CD_FORNECEDOR1']}</span>
-                            <span>Estoque: {row['QT_ESTOQ']}</span>
+                            <span id='info_{idx}'>Cod.Interno: {row['CD_ITEM']}</span>
+                            <span id='info_{idx}'>Cod Barra: {row['CD_CODIGOBARRA']}</span>
+                            <span id='info_{idx}'>Marca: {row['DS_MARCA']}</span>
+                            <span id='info_{idx}'>Local: {row['DS_LOCAL']}</span>
+                            <span id='info_{idx}'>Fornecedor: {row['CD_FORNECEDOR1']}</span>
+                            <span id='info_{idx}'>Estoque: {row['QT_ESTOQ']}</span>
                         </p>
                     """)
     else:

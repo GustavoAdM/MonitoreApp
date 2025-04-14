@@ -6,6 +6,7 @@ from datetime import datetime
 def cwd():
     return os.getcwd()
 
+
 def format_und_monetaria(valor, unidade: str = "BRL"):
     # Setando a unidade monetaria
     if unidade.upper() == "BRL":
@@ -25,13 +26,13 @@ def format_und_monetaria(valor, unidade: str = "BRL"):
     return valor
 
 
-def format_milhar(valor, casas_decimais:int = None):
+def format_milhar(valor, casas_decimais: int = None):
     if str(valor) == "nan":
         return 0
     if casas_decimais:
         valor = round(valor, casas_decimais)
         return f"{valor}".replace(',', '.')
-    return f"{valor:,.0f}".replace(',', '.') 
+    return f"{valor:,.0f}".replace(',', '.')
 
 
 def format_percentual(valor):
@@ -46,21 +47,22 @@ def primerio_dia_mes():
     primeiro_dia_mes = data_atual.replace(day=1).date()
     return primeiro_dia_mes
 
+
 def data_atual():
     data_atual = datetime.now()
     return data_atual.strftime("%d-%m-%Y")
 
 
-
-def diff_data(data_inico, data_fim, diff:int):
+def diff_data(data_inico, data_fim, diff: int):
 
     # Calcula a diferença entre as datas
-    diferenca = data_fim - data_inico   
+    diferenca = data_fim - data_inico
 
     if diferenca.days < diff:
         return True
-    
+
     return False
+
 
 def converter_minutos(tempo):
     if tempo:
@@ -69,8 +71,6 @@ def converter_minutos(tempo):
 
         # Converte a parte decimal dos minutos em segundos
         segundos = int((tempo - minutos) * 60)
-        
+
         return minutos, segundos
-    return 0,0
-
-
+    return 0, 0

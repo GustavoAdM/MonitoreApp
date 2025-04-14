@@ -2,6 +2,7 @@ import streamlit as st
 from Src.Database.QuerieBi import nome_separadores, separacao_pedido_geral, total_pedidos, total_pedidos_pecas_separador, pedidos_mais_30s
 import plotly.express as px
 from Utilities.Utilidades import primerio_dia_mes, diff_data, converter_minutos
+from streamlit.components.v1 import html
 
 def view_processo():
     try:
@@ -46,6 +47,9 @@ def view_processo():
                 fig = px.bar(pedidos_geral_df_long, x="Data-Nome", y="Valores", color="Metrica", barmode="group", 
                             title="Quantidade de Itens e Pedidos por Data e Nome de Usuário", height=350)
                 fig.update_traces(texttemplate='%{y}', textposition='outside')
+                fig.update_layout(
+                    margin=dict(l=0, r=0, t=35, b=0)
+                )
                 st.plotly_chart(fig)
 
             with col2:
@@ -95,19 +99,25 @@ def view_processo():
             st.warning("A diferença entre as datas não deve ser maior que 30 dias.")
 
         # Total por Separador
-        col_pie, col_peca, col_extara = st.columns(3)
+        col_pie, col_peca, col_extara, col_extra2 = st.columns(4)
         df_total_peca_pedido = total_pedidos_pecas_separador(dataInicio=dt_inicio, DataFim=dt_fim) 
         with col_pie:
-            with st.container(key="PieSeparadorPedidos", height=400):
-                fig2 = px.pie(df_total_peca_pedido, values="N_PEDIDOS", names='NM_USUARIO', title="Percentual de Pedidos por Separadores", height=400,
+            with st.container(key="PieSeparadorPedidos", height=350):
+                fig2 = px.pie(df_total_peca_pedido, values="N_PEDIDOS", names='NM_USUARIO', title="Percentual de Pedidos por Separadores", height=315,
                             labels={"NM_USUARIO": "Separador", "N_PEDIDOS": "Qnt Pedidos"})
+                fig2.update_layout(
+                    margin=dict(l=0, r=0, t=35, b=0)
+                )
                 st.plotly_chart(fig2)
 
         with col_peca:
-            with st.container(key="PieSeparadorPeças", height=400):
-                fig2 = px.pie(df_total_peca_pedido, values="QT_ITEM", names='NM_USUARIO', title="Percentual de Peças por Separadores", height=400,
+            with st.container(key="PieSeparadorPeças", height=350):
+                fig2 = px.pie(df_total_peca_pedido, values="QT_ITEM", names='NM_USUARIO', title="Percentual de Peças por Separadores", height=315,
                             labels={"NM_USUARIO": "Separador", "QT_ITEM": "Qnt Peças"})
+                fig2.update_layout(
+                    margin=dict(l=0, r=0, t=35, b=0)
+                )
                 st.plotly_chart(fig2)
-    
+        
     except Exception as e:
         print(f"Erro ViewProcesso: {e}")

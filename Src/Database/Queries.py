@@ -104,9 +104,12 @@ def listar_empresa(inico, fim) -> list:
 
 def acompanhamento_separacao(cd_empresa, **filtros):
     sql_pedidos = ""
+    sql_vendedor = ""
 
-    if filtros["pedidos"] is not None:
+    if filtros["pedidos"] != 0:
         sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}" 
+    if filtros["cd_vendedor"] != 0:
+        sql_vendedor = f"AND P.CD_VENDEDOR = {filtros['cd_vendedor']}" 
 
     _querie = f"""
     WITH PEDIDOS_SEPARACAO
@@ -123,8 +126,7 @@ def acompanhamento_separacao(cd_empresa, **filtros):
             COALESCE(ES.NM_USUARIO, 'Aguardando') SEPARADOR,
             COALESCE(ES.STATUS, 'N') STATUS,
             EX.DT_PEDIDO,
-            DATEDIFF(MINUTE, EX.DT_PEDIDO, COALESCE(ES.DTFIM_FAT, CURRENT_TIMESTAMP)) TEMPO_PEDIDO,
-            COALESCE(DATEDIFF(MINUTE, ES.DT_INICIO, COALESCE(ES.DT_FIM, CURRENT_TIMESTAMP)), 0) TEMPO_SEPARACAO
+            COALESCE(DATEDIFF(MINUTE, EX.DT_PEDIDO, CURRENT_TIMESTAMP), 1) TEMPO
         FROM
             PEDIDO P
 
@@ -146,15 +148,18 @@ def acompanhamento_separacao(cd_empresa, **filtros):
             AND P.ST_PEDIDO NOT IN ('A', 'P', 'C')
             AND P.NR_ORDEMSERVICO IS NULL
             {sql_pedidos}
+            {sql_vendedor}
     )
     SELECT
         PE.HORA_DATA,
         PE.PRIORIDADE,
+        PE.TEMPO||'Min' TEMPO,
+        PE.SEPARADOR,
         PE.NR_PEDIDO,
-        SUM(IP.VL_TOTAL) VALOR,
         PE.NM_PESSOA,
-        PE.CD_VENDEDOR,
-        PE.SEPARADOR
+        SUM(IP.VL_TOTAL) VALOR,
+        PE.CD_VENDEDOR
+        
     FROM PEDIDOS_SEPARACAO PE
     INNER JOIN ITEMPEDIDO IP ON (IP.CD_EMPRESA= PE.CD_EMPRESA
         AND IP.NR_PEDIDO = PE.NR_PEDIDO
@@ -162,7 +167,7 @@ def acompanhamento_separacao(cd_empresa, **filtros):
     WHERE PE.STATUS <> 'F'
     GROUP BY
         PE.HORA_DATA, PE.PRIORIDADE, PE.NR_PEDIDO, PE.NM_PESSOA,
-        PE.CD_VENDEDOR, PE.SEPARADOR, PE.CD_TIPOPEDIDO
+        PE.CD_VENDEDOR, PE.SEPARADOR, PE.CD_TIPOPEDIDO, PE.TEMPO
     ORDER BY
         COALESCE(PE.CD_TIPOPEDIDO, 4)
     """
@@ -170,9 +175,12 @@ def acompanhamento_separacao(cd_empresa, **filtros):
 
 def extend_acompanhamento_1(cd_empresa, **filtros):
     sql_pedidos = ""
+    sql_vendedor = ""
 
-    if filtros["pedidos"] is not None:
-        sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}" 
+    if filtros["pedidos"] != 0:
+        sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}"
+    if filtros["cd_vendedor"] != 0:
+        sql_vendedor = f"AND P.CD_VENDEDOR = {filtros['cd_vendedor']}"         
 
     _querie = f"""
         SELECT
@@ -200,6 +208,7 @@ def extend_acompanhamento_1(cd_empresa, **filtros):
                 AND P.CD_TIPOPEDIDO IS NOT NULL
                 AND P.NR_ORDEMSERVICO IS NULL
                 {sql_pedidos}
+                {sql_vendedor}
             GROUP BY 1, 2, 3
         ) X
         WHERE X.TEMPO IS NULL
@@ -208,9 +217,12 @@ def extend_acompanhamento_1(cd_empresa, **filtros):
 
 def acompanhamento_conferencia(cd_empresa, **filtros):
     sql_pedidos = ""
-
-    if filtros["pedidos"] is not None:
+    sql_vendedor = ""
+    
+    if filtros["pedidos"] != 0:
         sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}" 
+    if filtros["cd_vendedor"] != 0:
+        sql_vendedor = f"AND P.CD_VENDEDOR = {filtros['cd_vendedor']}" 
     
     _querie = f"""
     WITH PEDIDOS_SEPARACAO
@@ -228,7 +240,7 @@ def acompanhamento_conferencia(cd_empresa, **filtros):
             COALESCE(ES.STATUS, 'N') STATUS,
             EX.DT_PEDIDO,
             DATEDIFF(MINUTE, EX.DT_PEDIDO, COALESCE(ES.DTFIM_FAT, CURRENT_TIMESTAMP)) TEMPO_PEDIDO,
-            COALESCE(DATEDIFF(MINUTE, ES.DT_FIM, COALESCE(ES.DTFIM_CONF, CURRENT_TIMESTAMP)), 0) TEMPO_SEPARACAO
+            COALESCE(DATEDIFF(MINUTE, ES.DT_FIM, COALESCE(ES.DTFIM_CONF, CURRENT_TIMESTAMP)), 0)||'Min' TEMPO_CONFERENCIA
 
         FROM
             PEDIDO P
@@ -247,7 +259,7 @@ def acompanhamento_conferencia(cd_empresa, **filtros):
                 AND PN.TP_PEDIDO = P.TP_PEDIDO)
         WHERE
             P.TP_PEDIDO = 'S'
-            AND P.DT_PEDIDO = CURRENT_DATE
+            AND P.DT_PEDIDO BETWEEN CURRENT_DATE - 2 AND CURRENT_DATE
             AND ICP.NR_PEDIDO IS NULL
             AND P.CD_EMPRESA IN ({cd_empresa})
             AND ES.STATUS = 'F'
@@ -255,10 +267,12 @@ def acompanhamento_conferencia(cd_empresa, **filtros):
             AND P.NR_ORDEMSERVICO IS NULL
             AND PN.NR_LANCAMENTO IS NULL
             {sql_pedidos}
+            {sql_vendedor}
     )
     SELECT
         PE.HORA_DATA,
         PE.PRIORIDADE,
+        PE.TEMPO_CONFERENCIA,
         PE.NR_PEDIDO NR_PEDIDO_2,
         SUM(IP.VL_TOTAL) VALOR,
         PE.NM_PESSOA,
@@ -271,7 +285,7 @@ def acompanhamento_conferencia(cd_empresa, **filtros):
     WHERE PE.STATUS = 'F'
     GROUP BY
         PE.HORA_DATA, PE.PRIORIDADE, PE.NR_PEDIDO, PE.NM_PESSOA,
-        PE.CD_VENDEDOR, PE.SEPARADOR, PE.CD_TIPOPEDIDO
+        PE.CD_VENDEDOR, PE.SEPARADOR, PE.CD_TIPOPEDIDO,PE.TEMPO_CONFERENCIA
     ORDER BY
         COALESCE(PE.CD_TIPOPEDIDO, 4)
     """
@@ -280,9 +294,12 @@ def acompanhamento_conferencia(cd_empresa, **filtros):
 
 def acompanhamento_faturamento(cd_empresa, **filtros):
     sql_pedidos = ""
+    sql_vendedor = ""
 
-    if filtros["pedidos"] is not None:
-        sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}" 
+    if filtros["pedidos"] != 0:
+        sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}"
+    if filtros["cd_vendedor"] != 0:
+        sql_vendedor = f"AND P.CD_VENDEDOR = {filtros['cd_vendedor']}" 
     
     _querie = f"""
     WITH PEDIDOS_SEPARACAO
@@ -331,6 +348,7 @@ def acompanhamento_faturamento(cd_empresa, **filtros):
             AND P.NR_ORDEMSERVICO IS NULL
             AND PN.NR_LANCAMENTO IS NULL
             {sql_pedidos}
+            {sql_vendedor}
     )
      SELECT
         PE.HORA_DATA,
@@ -358,10 +376,13 @@ def acompanhamento_faturamento(cd_empresa, **filtros):
 
 def acompanhamento_entrega(cd_empresa, **filtros):
     sql_pedidos = ""
+    sql_vendedor = ""
 
-    if filtros["pedidos"] is not None:
+    if filtros["pedidos"] != 0:
         sql_pedidos = f"AND P.NR_PEDIDO = {filtros['pedidos']}" 
-
+    if filtros["cd_vendedor"] != 0:
+        sql_vendedor = f"AND P.CD_VENDEDOR = {filtros['cd_vendedor']}" 
+        
     _querie = f"""
     SELECT
         FORMATA_DATA(ET.DT_PEDIDO, '%H:%T %D/%M') HORA_DATA,
@@ -415,6 +436,7 @@ def acompanhamento_entrega(cd_empresa, **filtros):
         AND P.cd_empresa = {cd_empresa}
         AND COALESCE(RM.ST_REMESSAENTREGA, 'A') NOT IN ('C', 'F')
         {sql_pedidos}
+        {sql_vendedor}
     GROUP BY
         HORA_DATA, NR_PEDIDO_M, CLIENTE, ENDERECO, P.CD_VENDEDOR, TIPO,
         STATUS
@@ -479,6 +501,7 @@ def consultar_estoque(cd_empresa, cd_codigobarra):
         AND E.CD_LOCAL = IL.CD_LOCAL)
     INNER JOIN MARCA M ON (M.CD_MARCA = I.CD_MARCA)
     PLAN JOIN (JOIN (JOIN (A I INDEX (IDX001_ITEM), S INDEX (PK_SECAO), I INDEX (ITEM_IDX3), IL INDEX (PK_ITEMLOCAL), LE INDEX (PK_LOCALESTOQUE)), E INDEX (RESTOQUE_ITEM)), M INDEX (PK_MARCA))
+    ORDER BY IIF(I.CD_CODIGOBARRA = '{cd_codigobarra}', 99999999999, E.QT_ESTOQUE) DESC 
     """
 
     df= db.read_sql(query=_querie, result=False)
