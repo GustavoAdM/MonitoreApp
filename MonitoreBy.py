@@ -3,7 +3,6 @@ from PagesTemplate.Auditoria import auditoria
 from PagesTemplate.Processo import acompanhamento
 from PagesTemplate.ViewProcesso import view_processo
 from PagesTemplate.estoqueWMS import estoque_wms
-from PagesTemplate.ConexaoIp import capturar_ip
 import warnings
 
 warnings.simplefilter(action='ignore', category=UserWarning)
