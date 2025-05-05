@@ -50,6 +50,7 @@ def view_processo():
                 fig.update_layout(
                     margin=dict(l=0, r=0, t=35, b=0)
                 )
+                fig.update_yaxes(range=[0,500]) 
                 st.plotly_chart(fig)
 
             with col2:
