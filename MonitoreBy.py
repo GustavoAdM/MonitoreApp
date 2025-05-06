@@ -5,7 +5,6 @@ from PagesTemplate.ViewProcesso import view_processo
 from PagesTemplate.estoqueWMS import estoque_wms
 from PagesTemplate.Monitoramento_ti import monitoramento_ti
 import warnings
-from streamlit_cookies_controller import CookieController
 
 warnings.simplefilter(action='ignore', category=UserWarning)
 
