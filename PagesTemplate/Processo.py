@@ -227,7 +227,7 @@ def acompanhamento():
                     fig_balcao_4 = Figure(Indicator(
                         mode = "gauge+number",
                         value = conferencia_t,
-                        title = {'text': "T.M Total da Separação"},
+                        title = {'text': "T.M Conferencia"},
                         gauge = {
                             'axis': {
                                 'range': [0, 60],
