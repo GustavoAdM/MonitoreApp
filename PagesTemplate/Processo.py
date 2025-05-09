@@ -1,6 +1,6 @@
 import streamlit as st
 from Src.Database.Queries import (acompanhamento_separacao, acompanhamento_conferencia, acompanhamento_faturamento, bi_tempo_loja, 
-                                  acompanhamento_entrega)
+                                  acompanhamento_entrega, tempo_separacao)
 from st_aggrid import AgGrid, GridOptionsBuilder
 from streamlit_autorefresh import st_autorefresh
 from plotly.graph_objects import Figure, Indicator
@@ -112,7 +112,7 @@ def acompanhamento():
 
             with st.container(border=True, height=350, key="BI"):
                 st.markdown("Tempo Médio de Pedido por Nível", unsafe_allow_html=True)
-                col_balcao, col_motoboy = st.columns(2)
+                '''col_balcao, col_motoboy = st.columns(2)
 
                 with col_balcao:
                     df_tempo_loja = bi_tempo_loja(cd_empresa=empresa)
@@ -139,8 +139,115 @@ def acompanhamento():
                         height=300 # altura em pixels 
                     )
 
-                    st.plotly_chart(fig_balcao)
-
+                    st.plotly_chart(fig_balcao)'''
+                col_espera, col_separacao, col_total_sepa, col_conferencia = st.columns(4)
+                df_separacao = tempo_separacao(cd_empresa=empresa)
+                
+                with col_espera:
+                    espera = df_separacao["MEDIA_ESPERA"].values[0]
+                    fig_balcao = Figure(Indicator(
+                        mode = "gauge+number",
+                        value = espera,
+                        title = {'text': "T.M Aguardando Separação"},
+                        gauge = {
+                            'axis': {
+                                'range': [0, 60],
+                                'tickmode': 'linear',
+                                'dtick': 5  # Mostra os ticks de 5 em 5
+                            },
+                            'steps': [
+                                {'range': [0, 5], 'color': "green"},
+                                {'range': [6, 10], 'color': "yellow"},
+                                {'range': [10, 60], 'color': "red"}
+                            ],
+                            'bar': {'color': "darkblue"}}
+                    ))
+                    # Atualize o layout para definir o tamanho 
+                    fig_balcao.update_layout( 
+                        width=380, # largura em pixels 
+                        height=250, # altura em pixels 
+                        margin=dict(l=20, r=20, t=50, b=0)
+                    )
+                    st.plotly_chart(fig_balcao,key="espera_tm")
+                with col_separacao:
+                    separacao = df_separacao["MEDIA_SEPARACAO"].values[0]
+                    fig_balcao_2 = Figure(Indicator(
+                        mode = "gauge+number",
+                        value = separacao,
+                        title = {'text': "T.M Separação"},
+                        gauge = {
+                            'axis': {
+                                'range': [0, 60],
+                                'tickmode': 'linear',
+                                'dtick': 5  # Mostra os ticks de 5 em 5
+                            },
+                            'steps': [
+                                {'range': [0, 3], 'color': "green"},
+                                {'range': [4, 10], 'color': "yellow"},
+                                {'range': [11, 60], 'color': "red"}
+                            ],
+                            'bar': {'color': "darkblue"}}
+                    ))
+                    # Atualize o layout para definir o tamanho 
+                    fig_balcao_2.update_layout( 
+                        width=380, # largura em pixels 
+                        height=250, # altura em pixels 
+                        margin=dict(l=20, r=20, t=50, b=0)
+                    )
+                    st.plotly_chart(fig_balcao_2, key="separacao_tm")
+                with col_total_sepa:
+                    total_separacao = df_separacao["MEDIA_TOTAL_SEPARACAO"].values[0]
+                    fig_balcao_3 = Figure(Indicator(
+                        mode = "gauge+number",
+                        value = total_separacao,
+                        title = {'text': "T.M Total da Separação"},
+                        gauge = {
+                            'axis': {
+                                'range': [0, 60],
+                                'tickmode': 'linear',
+                                'dtick': 5  # Mostra os ticks de 5 em 5
+                            },
+                            'steps': [
+                                {'range': [0, 10], 'color': "green"},
+                                {'range': [11, 30], 'color': "yellow"},
+                                {'range': [31, 60], 'color': "red"}
+                            ],
+                            'bar': {'color': "darkblue"}}
+                    ))
+                    # Atualize o layout para definir o tamanho 
+                    fig_balcao_3.update_layout( 
+                        width=380, # largura em pixels 
+                        height=250, # altura em pixels 
+                        margin=dict(l=20, r=20, t=50, b=0)
+                    )
+                    st.plotly_chart(fig_balcao_3, key="total_separacao")
+                
+                with col_conferencia:
+                    conferencia_t = df_separacao["MEDIA_CONFERENCIA"].values[0]
+                    fig_balcao_4 = Figure(Indicator(
+                        mode = "gauge+number",
+                        value = conferencia_t,
+                        title = {'text': "T.M Total da Separação"},
+                        gauge = {
+                            'axis': {
+                                'range': [0, 60],
+                                'tickmode': 'linear',
+                                'dtick': 5  # Mostra os ticks de 5 em 5
+                            },
+                            'steps': [
+                                {'range': [0, 10], 'color': "green"},
+                                {'range': [11, 30], 'color': "yellow"},
+                                {'range': [31, 60], 'color': "red"}
+                            ],
+                            'bar': {'color': "darkblue"}}
+                    ))
+                    # Atualize o layout para definir o tamanho 
+                    fig_balcao_4.update_layout( 
+                        width=380, # largura em pixels 
+                        height=250, # altura em pixels 
+                        margin=dict(l=20, r=20, t=50, b=0)
+                    )
+                    st.plotly_chart(fig_balcao_4, key="CONFERENCIA")
 
             st.markdown("""
             <style> 

@@ -26,12 +26,14 @@ def view_processo():
             with col1:
                 # Grafico de Pedidos Gerais
                 pedidos_geral_df = separacao_pedido_geral(dt_incio=dt_inicio, dt_fim=dt_fim, separador=separador_selecionado)
+                
 
                 # Converter DT_PEDIDO para string
                 pedidos_geral_df["DT_PEDIDO"] = pedidos_geral_df["DT_PEDIDO"].astype(str)
 
                 # Criar uma nova coluna combinando data e nome
                 pedidos_geral_df["Data_Nome"] = pedidos_geral_df["DT_PEDIDO"] + " - " + pedidos_geral_df["NM_USUARIO"]
+                
 
                 # Renomear as colunas
                 pedidos_geral_df.rename(columns={"QT_ITEM": "Quantidade de Itens", 

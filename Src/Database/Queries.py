@@ -506,3 +506,48 @@ def consultar_estoque(cd_empresa, cd_codigobarra):
 
     df= db.read_sql(query=_querie, result=False)
     return df
+
+def tempo_separacao(cd_empresa):
+    _querie = f"""
+    SELECT
+        SUM(ESPERA) / COUNT(DISTINCT NR_PEDIDO) MEDIA_ESPERA,
+        SUM(SEPARACAO) / COUNT(DISTINCT NR_PEDIDO) MEDIA_SEPARACAO,
+        SUM(CONFERENCIA) / COUNT(DISTINCT NR_PEDIDO) MEDIA_CONFERENCIA,
+        SUM(TOTAL_SEPARACAO) / COUNT(DISTINCT NR_PEDIDO) MEDIA_TOTAL_SEPARACAO
+    FROM (
+        SELECT
+            DATEDIFF(MINUTE, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_INICIO ) ESPERA,
+            0 SEPARACAO,
+            0 TOTAL_SEPARACAO,
+            DATEDIFF(MINUTE, EX.DT_FIM, EX.DTFIM_CONF) CONFERENCIA,
+            P.NR_PEDIDO
+        FROM PEDIDO P
+        INNER JOIN EXTEND_SEPARACAO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
+            AND EX.NR_PEDIDO = P.NR_PEDIDO)
+        WHERE P.CD_EMPRESA = {cd_empresa}
+            AND P.DT_PEDIDO = CURRENT_DATE
+            AND P.TP_PEDIDO = 'S'
+            AND EX.STATUS = 'F'
+            AND P.CD_TIPOPEDIDO <> 3
+        
+        UNION ALL
+        
+        SELECT
+            0 ESPERA,
+            DATEDIFF(MINUTE, EX.DT_INICIO, EX.DT_FIM) SEPARACAO,
+            DATEDIFF(MINUTE, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_FIM) TOTAL_SEPARACAO,
+            0 CONFERENCIA,
+            P.NR_PEDIDO
+        FROM PEDIDO P
+        INNER JOIN EXTEND_SEPARACAO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
+            AND EX.NR_PEDIDO = P.NR_PEDIDO)
+        WHERE P.CD_EMPRESA = {cd_empresa}
+            AND P.DT_PEDIDO = CURRENT_DATE
+            AND P.TP_PEDIDO = 'S'
+            AND EX.STATUS = 'F'
+            AND P.CD_TIPOPEDIDO <> 3
+            AND DATEDIFF(SECOND, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_FIM) > 10
+        )
+        """
+    df= db.read_sql(query=_querie, result=False)
+    return df
