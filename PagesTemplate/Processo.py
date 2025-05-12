@@ -157,7 +157,7 @@ def acompanhamento():
                             },
                             'steps': [
                                 {'range': [0, 5], 'color': "green"},
-                                {'range': [6, 10], 'color': "yellow"},
+                                {'range': [5, 10], 'color': "yellow"},
                                 {'range': [10, 60], 'color': "red"}
                             ],
                             'bar': {'color': "darkblue"}}
@@ -183,8 +183,8 @@ def acompanhamento():
                             },
                             'steps': [
                                 {'range': [0, 3], 'color': "green"},
-                                {'range': [4, 10], 'color': "yellow"},
-                                {'range': [11, 60], 'color': "red"}
+                                {'range': [3, 10], 'color': "yellow"},
+                                {'range': [10, 60], 'color': "red"}
                             ],
                             'bar': {'color': "darkblue"}}
                     ))
@@ -209,8 +209,8 @@ def acompanhamento():
                             },
                             'steps': [
                                 {'range': [0, 10], 'color': "green"},
-                                {'range': [11, 30], 'color': "yellow"},
-                                {'range': [31, 60], 'color': "red"}
+                                {'range': [10, 30], 'color': "yellow"},
+                                {'range': [30, 60], 'color': "red"}
                             ],
                             'bar': {'color': "darkblue"}}
                     ))
@@ -236,8 +236,8 @@ def acompanhamento():
                             },
                             'steps': [
                                 {'range': [0, 10], 'color': "green"},
-                                {'range': [11, 30], 'color': "yellow"},
-                                {'range': [31, 60], 'color': "red"}
+                                {'range': [10, 30], 'color': "yellow"},
+                                {'range': [30, 60], 'color': "red"}
                             ],
                             'bar': {'color': "darkblue"}}
                     ))

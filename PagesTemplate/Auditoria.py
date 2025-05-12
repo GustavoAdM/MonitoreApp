@@ -69,7 +69,7 @@ def auditoria():
             gridOptions=gb.build(), 
             custom_css={
                 ".ag-header-cell-text": {"font-size": "14px"}
-            }, height=580
+            }, height=580, enable_enterprise_modules=True
         )
     except Exception as e:
         print(f"Erro Auditoria: {e}")

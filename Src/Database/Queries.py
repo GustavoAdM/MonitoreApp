@@ -516,12 +516,15 @@ def tempo_separacao(cd_empresa):
         SUM(TOTAL_SEPARACAO) / COUNT(DISTINCT NR_PEDIDO) MEDIA_TOTAL_SEPARACAO
     FROM (
         SELECT
-            DATEDIFF(MINUTE, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_INICIO ) ESPERA,
+            DATEDIFF(MINUTE, ESP.DT_PEDIDO, EX.DT_INICIO ) ESPERA,
             0 SEPARACAO,
             0 TOTAL_SEPARACAO,
             DATEDIFF(MINUTE, EX.DT_FIM, EX.DTFIM_CONF) CONFERENCIA,
             P.NR_PEDIDO
         FROM PEDIDO P
+        INNER JOIN EXTEND_SEPARACAO_TEMPO ESP ON (ESP.CD_EMPRESA = P.CD_EMPRESA
+            AND ESP.NR_PEDIDO = P.NR_PEDIDO
+            AND ESP.TP_PEDIDO = P.TP_PEDIDO)
         INNER JOIN EXTEND_SEPARACAO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
             AND EX.NR_PEDIDO = P.NR_PEDIDO)
         WHERE P.CD_EMPRESA = {cd_empresa}
@@ -535,10 +538,13 @@ def tempo_separacao(cd_empresa):
         SELECT
             0 ESPERA,
             DATEDIFF(MINUTE, EX.DT_INICIO, EX.DT_FIM) SEPARACAO,
-            DATEDIFF(MINUTE, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_FIM) TOTAL_SEPARACAO,
+            DATEDIFF(MINUTE, ESP.DT_PEDIDO, EX.DT_FIM) TOTAL_SEPARACAO,
             0 CONFERENCIA,
             P.NR_PEDIDO
         FROM PEDIDO P
+        INNER JOIN EXTEND_SEPARACAO_TEMPO ESP ON (ESP.CD_EMPRESA = P.CD_EMPRESA
+            AND ESP.NR_PEDIDO = P.NR_PEDIDO
+            AND ESP.TP_PEDIDO = P.TP_PEDIDO)
         INNER JOIN EXTEND_SEPARACAO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
             AND EX.NR_PEDIDO = P.NR_PEDIDO)
         WHERE P.CD_EMPRESA = {cd_empresa}
@@ -548,6 +554,7 @@ def tempo_separacao(cd_empresa):
             AND P.CD_TIPOPEDIDO <> 3
             AND DATEDIFF(SECOND, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_FIM) > 10
         )
+        
         """
     df= db.read_sql(query=_querie, result=False)
     return df
