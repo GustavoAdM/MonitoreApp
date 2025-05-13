@@ -55,6 +55,7 @@ def auditoria_separacao(dt_inicio:str, dt_fim:str, **kwargs):
             WHEN DATEDIFF(MINUTE, ES.DTFIM_CONF, CAST(N.DT_EMISSAO||' '||N.HR_NOTA AS TIMESTAMP)) < 60 THEN CAST(DATEDIFF(MINUTE, ES.DTFIM_CONF, CAST(N.DT_EMISSAO||' '||N.HR_NOTA AS TIMESTAMP)) AS VARCHAR(5)) || ' MIN'
             ELSE CAST(DATEDIFF(MINUTE, ES.DTFIM_CONF, CAST(N.DT_EMISSAO||' '||N.HR_NOTA AS TIMESTAMP)) / 60 AS VARCHAR(5)) || 'H ' || CAST(MOD(DATEDIFF(MINUTE, ES.DTFIM_CONF, CAST(N.DT_EMISSAO||' '||N.HR_NOTA AS TIMESTAMP)), 60) AS VARCHAR(5)) || ' MIN'
         END TEMPO_FAT
+        
     FROM
         PEDIDO P
         INNER JOIN EXTEND_SEPARACAO ES ON (ES.CD_EMPRESA = P.CD_EMPRESA
@@ -556,5 +557,56 @@ def tempo_separacao(cd_empresa):
         )
         
         """
+    df= db.read_sql(query=_querie, result=False)
+    return df
+
+def quantidade_aguardando(cd_empresa):
+    _querie = f"""
+    WITH PEDIDOS_SEPARACAO
+    AS (
+        SELECT DISTINCT
+            FORMATA_DATA(CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), '%H:%T %D/%M') HORA_DATA,
+            CASE P.CD_TIPOPEDIDO
+                WHEN 1 THEN 'BALCÃO'
+                WHEN 2 THEN 'MOTOBOY'
+                WHEN 3 THEN 'DESPACHE'
+                ELSE 'NENHUM'
+             END PRIORIDADE, P.CD_TIPOPEDIDO,
+            P.NR_PEDIDO, PE.NM_PESSOA, P.CD_EMPRESA, PV.NM_PESSOA NM_VENDEDOR, PV.CD_PESSOA CD_VENDEDOR,
+            COALESCE(ES.NM_USUARIO, 'AGUARDANDO') SEPARADOR,
+            COALESCE(ES.STATUS, 'N') STATUS,
+            EX.DT_PEDIDO,
+            COALESCE(DATEDIFF(MINUTE, EX.DT_PEDIDO, CURRENT_TIMESTAMP), 1) TEMPO
+        FROM
+            PEDIDO P
+
+            LEFT JOIN ITEMCONFERENCIAPEDIDO ICP ON (ICP.CD_EMPRESA = P.CD_EMPRESA
+                AND ICP.NR_PEDIDO = P.NR_PEDIDO
+                AND ICP.TP_PEDIDO = P.TP_PEDIDO)
+            LEFT JOIN EXTEND_SEPARACAO ES ON (ES.CD_EMPRESA = P.CD_EMPRESA
+                AND ES.NR_PEDIDO = P.NR_PEDIDO)
+            INNER JOIN PESSOA PE ON (PE.CD_PESSOA = P.CD_PESSOA)
+            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = P.CD_VENDEDOR)
+            LEFT JOIN EXTEND_SEPARACAO_TEMPO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
+                AND EX.NR_PEDIDO = P.NR_PEDIDO
+                AND EX.TP_PEDIDO = P.TP_PEDIDO)
+        WHERE
+            P.TP_PEDIDO = 'S'
+            AND P.DT_PEDIDO = CURRENT_DATE 
+            AND P.CD_EMPRESA IN ({cd_empresa})
+            AND ICP.NR_PEDIDO IS NULL
+            AND P.ST_PEDIDO NOT IN ('A', 'P', 'C')
+            AND P.NR_ORDEMSERVICO IS NULL
+            AND ES.NM_USUARIO IS NULL
+    )
+    SELECT
+        COUNT(*) QNTD
+        
+    FROM PEDIDOS_SEPARACAO PE
+    INNER JOIN ITEMPEDIDO IP ON (IP.CD_EMPRESA= PE.CD_EMPRESA
+        AND IP.NR_PEDIDO = PE.NR_PEDIDO
+        AND IP.TP_PEDIDO = 'S')
+    WHERE PE.STATUS <> 'F'
+    """
     df= db.read_sql(query=_querie, result=False)
     return df

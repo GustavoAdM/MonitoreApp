@@ -1,6 +1,6 @@
 import streamlit as st
 from Src.Database.Queries import (acompanhamento_separacao, acompanhamento_conferencia, acompanhamento_faturamento, bi_tempo_loja, 
-                                  acompanhamento_entrega, tempo_separacao)
+                                  acompanhamento_entrega, tempo_separacao, quantidade_aguardando)
 from st_aggrid import AgGrid, GridOptionsBuilder
 from streamlit_autorefresh import st_autorefresh
 from plotly.graph_objects import Figure, Indicator
@@ -18,8 +18,10 @@ def acompanhamento():
     if empresa is not None:
         col1, col2= st.columns(2)
         try:
+
+            # Separação Tabela
             with col1: 
-                with st.container(border=True, key="Separação", height=380):
+                with st.container(border=True, key="Separação", height=420):
                     st.markdown("Separação", unsafe_allow_html=True)
 
                     separacao_df = acompanhamento_separacao(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
@@ -45,9 +47,120 @@ def acompanhamento():
             
                     #gb.configure_pagination(paginationAutoPageSize=True) # Paginação automática
                     gridOptions = gb.build()
-                    AgGrid(separacao_df, gridOptions=gridOptions, height=300, enable_enterprise_modules=True)  
-
+                    AgGrid(separacao_df, gridOptions=gridOptions, height=300, enable_enterprise_modules=True) 
+            # Separação Indicadores
+            df_separacao = tempo_separacao(cd_empresa=empresa)
             with col2:
+                with st.container(border=True, key="separacao_indicadores", height=420):
+                    col11, col12 = st.columns(2)
+                    with col11:
+                        espera = df_separacao["MEDIA_ESPERA"].values[0]
+                        fig_balcao = Figure(Indicator(
+                            mode = "gauge+number",
+                            value = espera,
+                            title = {'text': "T.M Aguardando Separação"},
+                            gauge = {
+                                'axis': {
+                                    'range': [0, 60],
+                                    'tickmode': 'linear',
+                                    'dtick': 5  # Mostra os ticks de 5 em 5
+                                },
+                                'steps': [
+                                    {'range': [0, 5], 'color': "green"},
+                                    {'range': [5, 10], 'color': "yellow"},
+                                    {'range': [10, 60], 'color': "red"}
+                                ],
+                                'bar': {'color': "darkblue"}}
+                        ))
+                        # Atualize o layout para definir o tamanho 
+                        fig_balcao.update_layout( 
+                            width=250, # largura em pixels 
+                            height=200, # altura em pixels 
+                            margin=dict(l=20, r=20, t=50, b=0)
+                        )
+                        st.plotly_chart(fig_balcao,key="espera_tm")
+                    with col12:
+                        separacao = df_separacao["MEDIA_SEPARACAO"].values[0]
+                        fig_balcao_2 = Figure(Indicator(
+                            mode = "gauge+number",
+                            value = separacao,
+                            title = {'text': "T.M Separação"},
+                            gauge = {
+                                'axis': {
+                                    'range': [0, 60],
+                                    'tickmode': 'linear',
+                                    'dtick': 5  # Mostra os ticks de 5 em 5
+                                },
+                                'steps': [
+                                    {'range': [0, 3], 'color': "green"},
+                                    {'range': [3, 10], 'color': "yellow"},
+                                    {'range': [10, 60], 'color': "red"}
+                                ],
+                                'bar': {'color': "darkblue"}}
+                        ))
+                        # Atualize o layout para definir o tamanho 
+                        fig_balcao_2.update_layout( 
+                            width=250, # largura em pixels 
+                            height=200, # altura em pixels 
+                            margin=dict(l=20, r=20, t=50, b=0)
+                        )
+                        st.plotly_chart(fig_balcao_2, key="separacao_tm")
+
+                    col13, col14 = st.columns(2)
+                    with col13:
+                        quantidade_aguard = quantidade_aguardando(cd_empresa=empresa)
+                        fig_aguar_bullet = Figure(Indicator(
+                            mode = "number+gauge+delta",
+                            gauge = {
+                                'shape': "bullet",
+                                'axis': {
+                                    'range': [0, 15],
+                                    'dtick': 5 
+                                },
+                            
+                                
+                                },
+                            value = quantidade_aguard["QNTD"].values[0],
+                            title = {'text': "Em Espera"})
+                        )
+                        fig_aguar_bullet.update_layout( 
+                            width=400, # largura em pixels 
+                            height=150, # altura em pixels 
+                            margin=dict(l=120, r=0, t=0, b=50)
+                        )
+                        st.plotly_chart(fig_aguar_bullet)
+                    
+                    with col14:
+
+                        total_separacao = df_separacao["MEDIA_TOTAL_SEPARACAO"].values[0]
+                        fig_balcao_3 = Figure(Indicator(
+                            mode = "gauge+number",
+                            value = total_separacao,
+                            title = {'text': "T.M Total da Separação"},
+                            gauge = {
+                                'axis': {
+                                    'range': [0, 60],
+                                    'tickmode': 'linear',
+                                    'dtick': 5  # Mostra os ticks de 5 em 5
+                                },
+                                'steps': [
+                                    {'range': [0, 10], 'color': "green"},
+                                    {'range': [10, 30], 'color': "yellow"},
+                                    {'range': [30, 60], 'color': "red"}
+                                ],
+                                'bar': {'color': "darkblue"}}
+                        ))
+                        # Atualize o layout para definir o tamanho 
+                        fig_balcao_3.update_layout( 
+                            width=250, # largura em pixels 
+                            height=200, # altura em pixels 
+                            margin=dict(l=20, r=20, t=30, b=0)
+                        )
+                        st.plotly_chart(fig_balcao_3, key="total_separacao")
+
+            ### Conferencia ##
+            col1_2, col2_2 = st.columns(2)
+            with col1_2:
                 with st.container(border=True, height=380, key="Conferencia"): 
                     st.markdown("Conferência", unsafe_allow_html=True)
                     conferencia = acompanhamento_conferencia(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)    
@@ -69,160 +182,8 @@ def acompanhamento():
                     gridOptions_2 = gb2.build()
                     AgGrid(conferencia, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
 
-            col3, col4 = st.columns(2)
-
-            with col3:
-                with st.container(border=True, height=380, key="Faturamento"): 
-                    st.markdown("Faturamento", unsafe_allow_html=True)
-                    faturamento = acompanhamento_faturamento(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
-
-                    gb3 = GridOptionsBuilder.from_dataframe(faturamento)
-                    coluns_name_3 ={"HORA_DATA": "Horario", "PRIORIDADE": "Prioridade", "NR_PEDIDO_3":"Pedido", "VALOR": "Valor", 
-                                   "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador"}
-                    
-                    for old_name, new_name in coluns_name_3.items():
-                        gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
-                        if old_name == "NM_PESSOA":
-                            gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
-                        elif old_name == "SEPARADOR":
-                            gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
-                       
-                    gridOptions_2 = gb3.build()
-                    AgGrid(faturamento, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
-
-            with col4:
-                with st.container(border=True, height=380, key="PENDENTE_ENTREGA"): 
-                    st.markdown("Aguardando Entrega - Motoboy & Despache")
-                    motoboy_entrega = acompanhamento_entrega(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
-
-                    gb4 = GridOptionsBuilder.from_dataframe(motoboy_entrega)
-
-                    coluns_name_4 ={"HORA_DATA": "Horario","STATUS": "Status", "TIPO": "Entrega", "NR_PEDIDO_M":"Pedido", "VALOR": "Valor", "CLIENTE": "Cliente", "ENDERECO": "Endereço",
-                                    "CD_VENDEDOR": "Vendedor" }
-
-                    for old_name, new_name in coluns_name_4.items():
-                        gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
-                        if old_name == "NM_PESSOA":
-                            gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
-                        if old_name == "SEPARADOR":
-                            gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
-
-                    gridOptions_3 = gb4.build()
-                    AgGrid(motoboy_entrega, gridOptions=gridOptions_3, height=300, enable_enterprise_modules=True) 
-
-            with st.container(border=True, height=350, key="BI"):
-                st.markdown("Tempo Médio de Pedido por Nível", unsafe_allow_html=True)
-                '''col_balcao, col_motoboy = st.columns(2)
-
-                with col_balcao:
-                    df_tempo_loja = bi_tempo_loja(cd_empresa=empresa)
-            
-                    df_tempo_loja = df_tempo_loja["TEMPO_LOJA"].iloc[0]
-
-                    fig_balcao = Figure(Indicator(
-                        mode = "gauge+number",
-                        value = df_tempo_loja,
-                        #domain = {'x': [0, 1], 'y': [0, 1]},
-                        title = {'text': "Tempo Médio Loja (Min)"},
-                        gauge = {
-                            'axis': {'range': [0, 60]},
-                            'steps': [
-                                {'range': [0, 20], 'color': "green"},
-                                {'range': [21, 40], 'color': "yellow"},
-                                {'range': [41, 60], 'color': "red"}
-                            ],
-                            'bar': {'color': "darkblue"}}
-                    ))
-                    # Atualize o layout para definir o tamanho 
-                    fig_balcao.update_layout( 
-                        width=380, # largura em pixels 
-                        height=300 # altura em pixels 
-                    )
-
-                    st.plotly_chart(fig_balcao)'''
-                col_espera, col_separacao, col_total_sepa, col_conferencia = st.columns(4)
-                df_separacao = tempo_separacao(cd_empresa=empresa)
-                
-                with col_espera:
-                    espera = df_separacao["MEDIA_ESPERA"].values[0]
-                    fig_balcao = Figure(Indicator(
-                        mode = "gauge+number",
-                        value = espera,
-                        title = {'text': "T.M Aguardando Separação"},
-                        gauge = {
-                            'axis': {
-                                'range': [0, 60],
-                                'tickmode': 'linear',
-                                'dtick': 5  # Mostra os ticks de 5 em 5
-                            },
-                            'steps': [
-                                {'range': [0, 5], 'color': "green"},
-                                {'range': [5, 10], 'color': "yellow"},
-                                {'range': [10, 60], 'color': "red"}
-                            ],
-                            'bar': {'color': "darkblue"}}
-                    ))
-                    # Atualize o layout para definir o tamanho 
-                    fig_balcao.update_layout( 
-                        width=380, # largura em pixels 
-                        height=250, # altura em pixels 
-                        margin=dict(l=20, r=20, t=50, b=0)
-                    )
-                    st.plotly_chart(fig_balcao,key="espera_tm")
-                with col_separacao:
-                    separacao = df_separacao["MEDIA_SEPARACAO"].values[0]
-                    fig_balcao_2 = Figure(Indicator(
-                        mode = "gauge+number",
-                        value = separacao,
-                        title = {'text': "T.M Separação"},
-                        gauge = {
-                            'axis': {
-                                'range': [0, 60],
-                                'tickmode': 'linear',
-                                'dtick': 5  # Mostra os ticks de 5 em 5
-                            },
-                            'steps': [
-                                {'range': [0, 3], 'color': "green"},
-                                {'range': [3, 10], 'color': "yellow"},
-                                {'range': [10, 60], 'color': "red"}
-                            ],
-                            'bar': {'color': "darkblue"}}
-                    ))
-                    # Atualize o layout para definir o tamanho 
-                    fig_balcao_2.update_layout( 
-                        width=380, # largura em pixels 
-                        height=250, # altura em pixels 
-                        margin=dict(l=20, r=20, t=50, b=0)
-                    )
-                    st.plotly_chart(fig_balcao_2, key="separacao_tm")
-                with col_total_sepa:
-                    total_separacao = df_separacao["MEDIA_TOTAL_SEPARACAO"].values[0]
-                    fig_balcao_3 = Figure(Indicator(
-                        mode = "gauge+number",
-                        value = total_separacao,
-                        title = {'text': "T.M Total da Separação"},
-                        gauge = {
-                            'axis': {
-                                'range': [0, 60],
-                                'tickmode': 'linear',
-                                'dtick': 5  # Mostra os ticks de 5 em 5
-                            },
-                            'steps': [
-                                {'range': [0, 10], 'color': "green"},
-                                {'range': [10, 30], 'color': "yellow"},
-                                {'range': [30, 60], 'color': "red"}
-                            ],
-                            'bar': {'color': "darkblue"}}
-                    ))
-                    # Atualize o layout para definir o tamanho 
-                    fig_balcao_3.update_layout( 
-                        width=380, # largura em pixels 
-                        height=250, # altura em pixels 
-                        margin=dict(l=20, r=20, t=50, b=0)
-                    )
-                    st.plotly_chart(fig_balcao_3, key="total_separacao")
-                
-                with col_conferencia:
+            with col2_2:
+                with st.container(border=True, key="COnferencia Indicador", height=380):
                     conferencia_t = df_separacao["MEDIA_CONFERENCIA"].values[0]
                     fig_balcao_4 = Figure(Indicator(
                         mode = "gauge+number",
@@ -243,11 +204,56 @@ def acompanhamento():
                     ))
                     # Atualize o layout para definir o tamanho 
                     fig_balcao_4.update_layout( 
-                        width=380, # largura em pixels 
-                        height=250, # altura em pixels 
+                        width=250, # largura em pixels 
+                        height=200, # altura em pixels 
                         margin=dict(l=20, r=20, t=50, b=0)
                     )
                     st.plotly_chart(fig_balcao_4, key="CONFERENCIA")
+
+            
+            col31, col41 = st.columns(2)
+
+            with col31:
+                with st.container(border=True, height=380, key="Faturamento"): 
+                    st.markdown("Faturamento", unsafe_allow_html=True)
+                    faturamento = acompanhamento_faturamento(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
+
+                    gb3 = GridOptionsBuilder.from_dataframe(faturamento)
+                    coluns_name_3 ={"HORA_DATA": "Horario", "PRIORIDADE": "Prioridade", "NR_PEDIDO_3":"Pedido", "VALOR": "Valor", 
+                                   "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador"}
+                    
+                    for old_name, new_name in coluns_name_3.items():
+                        gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
+                        if old_name == "NM_PESSOA":
+                            gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
+                        elif old_name == "SEPARADOR":
+                            gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
+                       
+                    gridOptions_2 = gb3.build()
+                    AgGrid(faturamento, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
+
+            col41, col42 = st.columns(2)
+            with col41:
+                with st.container(border=True, height=380, key="PENDENTE_ENTREGA"): 
+                    st.markdown("Aguardando Entrega - Motoboy & Despache")
+                    motoboy_entrega = acompanhamento_entrega(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
+
+                    gb4 = GridOptionsBuilder.from_dataframe(motoboy_entrega)
+
+                    coluns_name_4 ={"HORA_DATA": "Horario","STATUS": "Status", "TIPO": "Entrega", "NR_PEDIDO_M":"Pedido", "VALOR": "Valor", "CLIENTE": "Cliente", "ENDERECO": "Endereço",
+                                    "CD_VENDEDOR": "Vendedor" }
+
+                    for old_name, new_name in coluns_name_4.items():
+                        gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
+                        if old_name == "NM_PESSOA":
+                            gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=150)
+                        if old_name == "SEPARADOR":
+                            gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
+
+                    gridOptions_3 = gb4.build()
+                    AgGrid(motoboy_entrega, gridOptions=gridOptions_3, height=300, enable_enterprise_modules=True) 
+
+              
 
             st.markdown("""
             <style> 
