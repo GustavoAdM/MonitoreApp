@@ -45,7 +45,7 @@ def acompanhamento():
             
                     #gb.configure_pagination(paginationAutoPageSize=True) # Paginação automática
                     gridOptions = gb.build()
-                    AgGrid(separacao_df, gridOptions=gridOptions, height=300)  
+                    AgGrid(separacao_df, gridOptions=gridOptions, height=300, enable_enterprise_modules=True)  
 
             with col2:
                 with st.container(border=True, height=380, key="Conferencia"): 
@@ -67,7 +67,7 @@ def acompanhamento():
                             gb2.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=85, minWidth=85)     
 
                     gridOptions_2 = gb2.build()
-                    AgGrid(conferencia, gridOptions=gridOptions_2, height=300) 
+                    AgGrid(conferencia, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
 
             col3, col4 = st.columns(2)
 
@@ -88,7 +88,7 @@ def acompanhamento():
                             gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
                        
                     gridOptions_2 = gb3.build()
-                    AgGrid(faturamento, gridOptions=gridOptions_2, height=300) 
+                    AgGrid(faturamento, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
 
             with col4:
                 with st.container(border=True, height=380, key="PENDENTE_ENTREGA"): 
@@ -108,7 +108,7 @@ def acompanhamento():
                             gb4.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
 
                     gridOptions_3 = gb4.build()
-                    AgGrid(motoboy_entrega, gridOptions=gridOptions_3, height=300) 
+                    AgGrid(motoboy_entrega, gridOptions=gridOptions_3, height=300, enable_enterprise_modules=True) 
 
             with st.container(border=True, height=350, key="BI"):
                 st.markdown("Tempo Médio de Pedido por Nível", unsafe_allow_html=True)
