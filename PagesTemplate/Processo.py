@@ -211,7 +211,7 @@ def acompanhamento():
                     st.plotly_chart(fig_balcao_4, key="CONFERENCIA")
 
             
-            col31, col41 = st.columns(2)
+            col31, col32 = st.columns(2)
 
             with col31:
                 with st.container(border=True, height=380, key="Faturamento"): 
@@ -230,10 +230,12 @@ def acompanhamento():
                             gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
                        
                     gridOptions_2 = gb3.build()
-                    AgGrid(faturamento, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
+                    AgGrid(faturamento, gridOptions=gridOptions_2, height=340, enable_enterprise_modules=True) 
+            with col32:
+                pass
 
-            col41, col42 = st.columns(2)
-            with col41:
+            col43, col44 = st.columns(2)
+            with col43:
                 with st.container(border=True, height=380, key="PENDENTE_ENTREGA"): 
                     st.markdown("Aguardando Entrega - Motoboy & Despache")
                     motoboy_entrega = acompanhamento_entrega(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
