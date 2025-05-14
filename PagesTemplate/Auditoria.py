@@ -1,7 +1,8 @@
 import streamlit as st
-from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_vendedor, listar_separador, listar_empresa
+from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_vendedor, listar_separador, monitore_tempo
 from st_aggrid import AgGrid, GridOptionsBuilder
-
+from plotly.express import line
+from plotly.graph_objects import Bar
 
 def auditoria():
     st.markdown("""
@@ -71,6 +72,45 @@ def auditoria():
                 ".ag-header-cell-text": {"font-size": "14px"}
             }, height=580, enable_enterprise_modules=True
         )
+
+
+        with st.container(border=True, key="grafico_auditoria"):
+            if cod_empresa != []:
+                # Suponha que você já tenha seu DataFrame `df`
+                df = monitore_tempo(cd_empresa=cod_empresa[0])
+
+                # Derreta as colunas das linhas
+                df_melt = df.melt(id_vars=["O_HORA"], 
+                                value_vars=["O_QTDE_SEP", "O_QTDE_CONF", "O_QTDE_FAT"], 
+                                var_name="Metricas", value_name="Valores")
+
+                # Cria a figura com as linhas
+                fig = line(df_melt, x="O_HORA", y="Valores", color="Metricas", markers=True)
+
+                # Adiciona a barra
+                fig.add_trace(
+                    Bar(
+                        x=df["O_HORA"],
+                        y=df["O_QTDE_PEDIDO"],
+                        name="Pedidos",
+                        marker_color="lightgray",
+                        opacity=0.6,
+                        yaxis="y"
+                    )
+                )
+
+                # Atualiza layout para melhorar visual
+                fig.update_layout(
+                    title="Monitoramento por hora",
+                    xaxis_title="Hora",
+                    yaxis_title="Quantidade",
+                    barmode='overlay',  # 'overlay' para sobrepor ou 'group' para lado a lado
+                    legend_title="Legenda",
+                    height=500
+                )
+
+                # Mostra no Streamlit
+                st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
         print(f"Erro Auditoria: {e}")
 

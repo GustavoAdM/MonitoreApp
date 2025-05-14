@@ -626,3 +626,13 @@ def quantidade_aguardando(cd_empresa):
     """
     df= db.read_sql(query=_querie, result=False)
     return df
+
+def monitore_tempo(cd_empresa):
+    _querie = f"""
+    SELECT
+        E.O_QTDE_PEDIDO, E.O_QTDE_SEP, E.O_QTDE_CONF, E.O_QTDE_FAT, E.O_HORA
+    FROM EXTEND_VIEW_HORA({cd_empresa}) E
+    ORDER BY E.O_HORA
+    """
+    df= db.read_sql(query=_querie, result=False)
+    return df
