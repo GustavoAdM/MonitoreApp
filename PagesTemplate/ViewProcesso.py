@@ -19,6 +19,8 @@ def view_processo():
             separador_selecionado = st.pills("Selecione o Separador", separadores, selection_mode="multi")
 
             
+
+            
         # Validação da diferença entre as datas
         if diff_data(data_inico=dt_inicio, data_fim=dt_fim, diff=30):
             # Layout para os gráficos

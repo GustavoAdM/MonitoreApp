@@ -23,14 +23,15 @@ def auditoria():
 
             empresa, pedido = st.columns(2)
             with empresa:
-                cod_empresa = st.multiselect("Empresa", options=[7,40,50,60])
+                cod_empresa = st.selectbox("Empresa", options=[7,40,50,60])
             with pedido:
                 numero_pedido = st.number_input(label="Pedido", key="PEDIDO", value=None, min_value=0,)
             
             cliente = st.multiselect(label="Cliente", options=listar_clientes(inico=data_inicio, fim=data_fim), max_selections=4, key="CLIENTE",help="Exibindo todos os clientes no período filtrado entre 'Data Início' e 'Data Fim'")
             separador = st.multiselect(label="Separador", options=listar_separador(inico=data_inicio, fim=data_fim), key="SEPARADOR")
             vendedor = st.multiselect(label="Vendedor", options=listar_vendedor(inico=data_inicio, fim=data_fim),  max_selections=4,key="VENDEDORES",help="Exibindo todos os vendedores no período filtrado entre 'Data Início' e 'Data Fim'")
-        
+            data_posicao = st.date_input("Data Inicio", format="DD/MM/YYYY", value="today", key="DataPosicao") 
+
         filtros = {
             "empresa": cod_empresa,
             "pedido": numero_pedido,
@@ -77,7 +78,7 @@ def auditoria():
         with st.container(border=True, key="grafico_auditoria"):
             if cod_empresa != []:
                 # Suponha que você já tenha seu DataFrame `df`
-                df = monitore_tempo(cd_empresa=cod_empresa[0])
+                df = monitore_tempo(cd_empresa=cod_empresa, dt_posicao=data_posicao)
 
                 # Derreta as colunas das linhas
                 df_melt = df.melt(id_vars=["O_HORA"], 
@@ -101,12 +102,14 @@ def auditoria():
                         x=df["O_HORA"],
                         y=df["O_QTDE_PEDIDO"],
                         name="Pedidos",
-                        marker_color="lightgray",
-                        opacity=0.6,
+                        marker_color="green",
+                        opacity=1,
                         yaxis="y"
                     )
                 )
+                maior_valor = df[["O_QTDE_PEDIDO", "O_QTDE_SEP", "O_QTDE_CONF", "O_QTDE_FAT"]].max().max()
 
+                fig.update_yaxes(range=[0,maior_valor+2]) 
                 # Atualiza layout para melhorar visual
                 fig.update_layout(
                     title="Monitoramento por hora",
