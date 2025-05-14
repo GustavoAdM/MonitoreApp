@@ -83,6 +83,14 @@ def auditoria():
                 df_melt = df.melt(id_vars=["O_HORA"], 
                                 value_vars=["O_QTDE_SEP", "O_QTDE_CONF", "O_QTDE_FAT"], 
                                 var_name="Metricas", value_name="Valores")
+                
+                # Renomeia as métricas
+                nome_metricas = {
+                    "O_QTDE_SEP": "Qtde Separação",
+                    "O_QTDE_CONF": "Qtde Conferido",
+                    "O_QTDE_FAT": "Qtde Faturado"
+                }
+                df_melt["Metricas"] = df_melt["Metricas"].replace(nome_metricas)
 
                 # Cria a figura com as linhas
                 fig = line(df_melt, x="O_HORA", y="Valores", color="Metricas", markers=True)
