@@ -2,7 +2,7 @@ import streamlit as st
 from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_vendedor, listar_separador, monitore_tempo
 from st_aggrid import AgGrid, GridOptionsBuilder
 from plotly.express import line
-from plotly.graph_objects import Bar
+from plotly.graph_objects import Bar,Line
 
 def auditoria():
     st.markdown("""
@@ -95,7 +95,7 @@ def auditoria():
 
                 # Cria a figura com as linhas
                 fig = line(df_melt, x="O_HORA", y="Valores", color="Metricas", markers=True)
-
+              
                 # Adiciona a barra
                 fig.add_trace(
                     Bar(

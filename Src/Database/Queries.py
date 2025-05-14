@@ -630,7 +630,7 @@ def quantidade_aguardando(cd_empresa):
 def monitore_tempo(cd_empresa, dt_posicao):
     _querie = f"""
     SELECT
-        E.O_QTDE_PEDIDO, E.O_QTDE_SEP, E.O_QTDE_CONF, E.O_QTDE_FAT, E.O_HORA
+        E.O_QTDE_PEDIDO, E.O_QTDE_SEP, E.O_QTDE_CONF, E.O_QTDE_FAT, E.O_HORA, E.O_VARIACAO
     FROM EXTEND_VIEW_HORA({cd_empresa}, '{dt_posicao}') E
     ORDER BY E.O_HORA
     """
