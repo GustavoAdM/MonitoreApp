@@ -110,24 +110,22 @@ def acompanhamento():
                     with col13:
                         quantidade_aguard = quantidade_aguardando(cd_empresa=empresa)
                         fig_aguar_bullet = Figure(Indicator(
-                            mode = "number+gauge+delta",
-                            gauge = {
+                            mode="number+gauge+delta",
+                            value=6,#quantidade_aguard["QNTD"].values[0],
+                            title={'text': "Em Espera"},
+                            gauge={
                                 'shape': "bullet",
-                                'axis': {
-                                    'range': [0, 15],
-                                    'dtick': 5 
-                                },
-                            
-                                
-                                },
-                            value = quantidade_aguard["QNTD"].values[0],
-                            title = {'text': "Em Espera"})
-                        )
-                        fig_aguar_bullet.update_layout( 
-                            width=400, # largura em pixels 
-                            height=150, # altura em pixels 
+                                'axis': {'range': [0, 15], 'dtick': 5},
+                                'bar': {'color': 'green' if quantidade_aguard["QNTD"].values[0] < 6 else "yellow"}, 
+                            }
+                        ))
+
+                        fig_aguar_bullet.update_layout(
+                            width=400,
+                            height=150,
                             margin=dict(l=120, r=0, t=0, b=50)
                         )
+
                         st.plotly_chart(fig_aguar_bullet)
                     
                     with col14:

@@ -47,7 +47,7 @@ def auditoria():
         #Criação da tabela
         gb = GridOptionsBuilder.from_dataframe(read_auditoria)
 
-        coluns_name = {"CD_EMPRESA":"Empresa", "NIVEL":"Nivel", "NR_PEDIDO": "Pedido", "CLIENTE":"Cliente", "VENDEDOR":"Vendedor",
+        coluns_name = {"CD_EMPRESA":"Empresa", "NIVEL":"Nivel", "NR_PEDIDO": "Pedido", "STATUS_PEDIDO": "Status", "CLIENTE":"Cliente", "VENDEDOR":"Vendedor",
                     "DT_PEDIDO":"Data Pedido", "SEPARADOR":"Separador", "DT_INICIO": "Inicio Separação", "DT_FIM":"Fim Separação", "TEMPO": "Tempo Separação",
                     "NM_CONFERIDOR":"Conferidor", "INICIO_CONF": "Inicio Conferencia", "FIM_CONF": "Fim Conferência", "TEMPO_CONF": "Tempo Conferencia","CD_USUARIO": "Usuario Faturamento", "INICIO_FAT": "Inicio Faturamento",
                     "FIM_FAT": "Fim Faturamento", "TEMPO_FAT": "Tempo Faturamento"}

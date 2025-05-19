@@ -38,6 +38,13 @@ def auditoria_separacao(dt_inicio:str, dt_fim:str, **kwargs):
             ELSE 'SEM PRIORIDADE'
         END NIVEL,
         P.NR_PEDIDO,
+        CASE P.st_pedido
+            WHEN 'A' THEN 'ATENDIDO'
+            WHEN 'C' THEN 'CANCELADO'
+            WHEN 'P' THEN 'PARCIAL'
+            WHEN 'B' THEN 'BLOQUADO'
+            ELSE 'VALIDO'
+        END STATUS_PEDIDO,
         PC.NM_PESSOA CLIENTE, PV.NM_PESSOA VENDEDOR,
         CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP) DT_PEDIDO,
         ES.NM_USUARIO SEPARADOR, ES.DT_INICIO, ES.DT_FIM,
@@ -73,7 +80,7 @@ def auditoria_separacao(dt_inicio:str, dt_fim:str, **kwargs):
             AND N.TP_NOTA = RCN.O_TP_NOTA)
     WHERE
         P.DT_PEDIDO BETWEEN '{dt_inicio}' AND '{dt_fim}'
-        AND P.ST_PEDIDO NOT IN ('C')
+        --AND P.ST_PEDIDO NOT IN ('C')
         {empresa}
         {pedido}
         {cliente}  
