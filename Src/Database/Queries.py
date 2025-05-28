@@ -93,6 +93,44 @@ def auditoria_separacao(dt_inicio:str, dt_fim:str, **kwargs):
     
     return df
 
+def auditoria_os(cd_empresa, dt_inicio, dt_fim, **kwargs):
+    separador = ""
+    if kwargs["separador"] != []:
+            separador_string = ", ".join(f"'{usuario}'" for usuario in kwargs['separador'])
+            separador = f"AND EO.NM_SEPARADOR IN ({separador_string})"
+
+    _querie = f"""
+    SELECT
+        FORMATA_DATA(OS.DT_EMISSAO, '%D/%M/%Y') HORA_DATA,
+        COALESCE(EO.NM_SEPARADOR, 'AGUARDANDO') SEPARADOR,
+        OS.NR_ORDEMSERVICO OS,
+        I.CD_ITEM||'-'||I.DS_ITEM DS_ITEM,
+        P.NM_PESSOA,
+        SUM(SI.VL_TOTAL) VALOR,
+        SI.CD_VENDEDOR
+    FROM ORDEMSERVICO OS
+    INNER JOIN PESSOA P ON (P.CD_PESSOA = OS.CD_PESSOA)
+    INNER JOIN SERVICOITEM SI ON (SI.CD_EMPRESA = OS.CD_EMPRESA
+        AND SI.NR_ORDEMSERVICO = OS.NR_ORDEMSERVICO)
+    INNER JOIN ITEM I ON (I.CD_ITEM = SI.CD_ITEM)
+    LEFT JOIN ITEMCONFERENCIAORDEM ICO ON (ICO.CD_EMPRESA = SI.CD_EMPRESA
+        AND ICO.NR_ORDEMSERVICO = SI.NR_ORDEMSERVICO
+        AND ICO.CD_ITEM = SI.CD_ITEM)
+    LEFT JOIN EXTEND_ORDERMSERVICO EO ON (EO.CD_EMPRESA = SI.CD_EMPRESA
+            AND EO.NR_ORDERMSERVICO = SI.NR_ORDEMSERVICO
+            AND EO.CD_ITEM = SI.CD_ITEM)
+    WHERE OS.CD_EMPRESA IN ({cd_empresa})
+        AND OS.DT_EMISSAO BETWEEN '{dt_inicio}' AND '{dt_fim }'
+        {separador}
+    GROUP BY
+        HORA_DATA, SEPARADOR, OS,
+        DS_ITEM,
+        P.NM_PESSOA,
+        SI.CD_VENDEDOR
+    """
+    df = db.read_sql(query=_querie)
+    return df
+
 def listar_clientes(inico, fim) -> list:
     resultado_df = auditoria_separacao(dt_inicio=inico, dt_fim=fim)
     list_cliente = resultado_df["CLIENTE"].unique().tolist()
@@ -183,6 +221,40 @@ def acompanhamento_separacao(cd_empresa, **filtros):
     ORDER BY
         COALESCE(PE.CD_TIPOPEDIDO, 4)
     """
+    return db.read_sql(query=_querie)
+
+def acompanhamento_os(cd_empresa):
+    _querie = f"""
+
+    SELECT
+        FORMATA_DATA(OS.DT_EMISSAO, '%D/%M/%Y') HORA_DATA,
+        COALESCE(EO.NM_SEPARADOR, 'AGUARDANDO') SEPARADOR,
+        OS.NR_ORDEMSERVICO OS,
+        I.CD_ITEM||'-'||I.DS_ITEM DS_ITEM,
+        P.NM_PESSOA,
+        SUM(SI.VL_TOTAL) VALOR,
+        SI.CD_VENDEDOR
+    FROM ORDEMSERVICO OS
+    INNER JOIN PESSOA P ON (P.CD_PESSOA = OS.CD_PESSOA)
+    INNER JOIN SERVICOITEM SI ON (SI.CD_EMPRESA = OS.CD_EMPRESA
+        AND SI.NR_ORDEMSERVICO = OS.NR_ORDEMSERVICO)
+    INNER JOIN ITEM I ON (I.CD_ITEM = SI.CD_ITEM)
+    LEFT JOIN ITEMCONFERENCIAORDEM ICO ON (ICO.CD_EMPRESA = SI.CD_EMPRESA
+        AND ICO.NR_ORDEMSERVICO = SI.NR_ORDEMSERVICO
+        AND ICO.CD_ITEM = SI.CD_ITEM)
+    LEFT JOIN EXTEND_ORDERMSERVICO EO ON (EO.CD_EMPRESA = SI.CD_EMPRESA
+            AND EO.NR_ORDERMSERVICO = SI.NR_ORDEMSERVICO
+            AND EO.CD_ITEM = SI.CD_ITEM)
+    WHERE OS.CD_EMPRESA IN ({cd_empresa})
+        AND OS.DT_EMISSAO = CURRENT_DATE
+        AND ICO.NR_ORDEMSERVICO IS NULL
+        AND COALESCE(EO.STATUS, 'A') <> 'F'
+    GROUP BY
+        HORA_DATA, SEPARADOR, OS,
+        DS_ITEM,
+        P.NM_PESSOA,
+        SI.CD_VENDEDOR
+        """
     return db.read_sql(query=_querie)
 
 def extend_acompanhamento_1(cd_empresa, **filtros):

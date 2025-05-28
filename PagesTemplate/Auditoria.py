@@ -1,5 +1,5 @@
 import streamlit as st
-from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_vendedor, listar_separador, monitore_tempo
+from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_vendedor, listar_separador, monitore_tempo, auditoria_os
 from st_aggrid import AgGrid, GridOptionsBuilder
 from plotly.express import line
 from plotly.graph_objects import Bar,Line
@@ -42,15 +42,19 @@ def auditoria():
 
         # Iniciar a Querie no banco
         read_auditoria = auditoria_separacao(dt_inicio=data_inicio, dt_fim=data_fim, **filtros)
+        read_auditoria_os = auditoria_os(cd_empresa=cod_empresa, dt_inicio=data_inicio, dt_fim=data_fim, **filtros)
 
         ####### Criação das Visualizações #########
         #Criação da tabela
         gb = GridOptionsBuilder.from_dataframe(read_auditoria)
+        gb_os = GridOptionsBuilder.from_dataframe(read_auditoria_os)
 
         coluns_name = {"CD_EMPRESA":"Empresa", "NIVEL":"Nivel", "NR_PEDIDO": "Pedido", "STATUS_PEDIDO": "Status", "CLIENTE":"Cliente", "VENDEDOR":"Vendedor",
                     "DT_PEDIDO":"Data Pedido", "SEPARADOR":"Separador", "DT_INICIO": "Inicio Separação", "DT_FIM":"Fim Separação", "TEMPO": "Tempo Separação",
                     "NM_CONFERIDOR":"Conferidor", "INICIO_CONF": "Inicio Conferencia", "FIM_CONF": "Fim Conferência", "TEMPO_CONF": "Tempo Conferencia","CD_USUARIO": "Usuario Faturamento", "INICIO_FAT": "Inicio Faturamento",
                     "FIM_FAT": "Fim Faturamento", "TEMPO_FAT": "Tempo Faturamento"}
+        
+        coluns_name2 = {"HORA_DATA": "Data", "SEPARADOR": "Separador", "DS_ITEM":"Item", "NM_PESSOA":"Pessoa", "VALOR":"Valor", "CD_VENDEDOR": "Vendedor"}
         
         # Customizar Colunas 
         for old_name, new_name in coluns_name.items():
@@ -65,10 +69,21 @@ def auditoria():
         gb.configure_default_column(
             cellStyle={"font-size": "14px"},
         )
+
+        for old_name, new_name in coluns_name2.items():
+   
+            gb_os.configure_column(old_name, header_name=new_name, 
+                                cellStyle={"text-align": "left"})
         
 
         AgGrid(read_auditoria, 
             gridOptions=gb.build(), 
+            custom_css={
+                ".ag-header-cell-text": {"font-size": "14px"}
+            }, height=580, enable_enterprise_modules=True
+        )
+        AgGrid(read_auditoria_os, 
+            gridOptions=gb_os.build(), 
             custom_css={
                 ".ag-header-cell-text": {"font-size": "14px"}
             }, height=580, enable_enterprise_modules=True

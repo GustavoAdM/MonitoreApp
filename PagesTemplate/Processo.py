@@ -1,16 +1,16 @@
 import streamlit as st
 from Src.Database.Queries import (acompanhamento_separacao, acompanhamento_conferencia, acompanhamento_faturamento, bi_tempo_loja, 
-                                  acompanhamento_entrega, tempo_separacao, quantidade_aguardando)
+                                  acompanhamento_entrega, tempo_separacao, quantidade_aguardando, acompanhamento_os)
 from st_aggrid import AgGrid, GridOptionsBuilder
 from streamlit_autorefresh import st_autorefresh
 from plotly.graph_objects import Figure, Indicator
 
 
 def acompanhamento():
-    st_autorefresh(interval=20000, key="ACOMPANHAMENTO_VIEW")
+    st_autorefresh(interval=10000, key="ACOMPANHAMENTO_VIEW")
 
     with st.sidebar:
-        st.info("Atualização: 20seg")
+        st.info("Atualização: 10seg")
         empresa = st.pills("Selecione a empresa: ", options=[7, 40, 50, 60])
         pedidos = st.number_input("Consultar Pedido", value=0)
         vendedor = st.number_input("Consultar Vendedor", value=0)
@@ -21,15 +21,20 @@ def acompanhamento():
 
             # Separação Tabela
             with col1: 
-                with st.container(border=True, key="Separação", height=420):
+                with st.container(border=True, key="Separação", height=670):
                     st.markdown("Separação", unsafe_allow_html=True)
 
                     separacao_df = acompanhamento_separacao(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
+                    separacao_os = acompanhamento_os(cd_empresa=empresa)
   
                     gb = GridOptionsBuilder.from_dataframe(separacao_df)
+                    gb_os = GridOptionsBuilder.from_dataframe(separacao_os)
                     
                     coluns_name = {"HORA_DATA": "Horario", "PRIORIDADE": "Prioridade", "NR_PEDIDO":"Pedido", "VALOR": "Valor", 
                                    "NM_PESSOA": "Cliente", "CD_VENDEDOR": "Vendedor","SEPARADOR": "Separador", "TEMPO": "Separação"}
+                    
+                    coluns_name2 = {"HORA_DATA": "Horario","CD_VENDEDOR": "Vendedor","VALOR": "Valor", "NM_PESSOA": "Cliente", "DS_ITEM":"Item",
+                    "SEPARADOR": "Separador"}
                     
                     for old_name, new_name in coluns_name.items():
                         gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150)
@@ -43,15 +48,25 @@ def acompanhamento():
                             gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=110, minWidth=110)
                         elif old_name == "CD_VENDEDOR":
                             gb.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=110, minWidth=110)
+                    
+                    for old_name, new_name in coluns_name2.items():
+                        gb_os.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=250)
+                        if old_name == "NM_PESSOA":
+                            gb_os.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=150, minWidth=50)
+                        elif old_name == "VALOR":
+                            gb_os.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=90, minWidth=90)
+                        elif old_name == "CD_VENDEDOR":
+                            gb_os.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=90, minWidth=90)
                         
-            
                     #gb.configure_pagination(paginationAutoPageSize=True) # Paginação automática
                     gridOptions = gb.build()
-                    AgGrid(separacao_df, gridOptions=gridOptions, height=300, enable_enterprise_modules=True) 
+                    AgGrid(separacao_df, gridOptions=gridOptions, height=280, enable_enterprise_modules=True) 
+                    gridOptions_os = gb_os.build()
+                    AgGrid(separacao_os, gridOptions=gridOptions_os, height=280, enable_enterprise_modules=True)
             # Separação Indicadores
             df_separacao = tempo_separacao(cd_empresa=empresa)
             with col2:
-                with st.container(border=True, key="separacao_indicadores", height=420):
+                with st.container(border=True, key="separacao_indicadores", height=670):
                     col11, col12 = st.columns(2)
                     with col11:
                         espera = df_separacao["MEDIA_ESPERA"].values[0]
@@ -110,22 +125,25 @@ def acompanhamento():
                     with col13:
                         quantidade_aguard = quantidade_aguardando(cd_empresa=empresa)
                         fig_aguar_bullet = Figure(Indicator(
-                            mode="number+gauge+delta",
-                            value=6,#quantidade_aguard["QNTD"].values[0],
-                            title={'text': "Em Espera"},
-                            gauge={
+                            mode = "number+gauge+delta",
+                            gauge = {
                                 'shape': "bullet",
-                                'axis': {'range': [0, 15], 'dtick': 5},
+                                'axis': {
+                                    'range': [0, 15],
+                                    'dtick': 5 
+                                },
                                 'bar': {'color': 'green' if quantidade_aguard["QNTD"].values[0] < 6 else "yellow"}, 
-                            }
-                        ))
-
-                        fig_aguar_bullet.update_layout(
-                            width=400,
-                            height=150,
-                            margin=dict(l=120, r=0, t=0, b=50)
+                            
+                                
+                                },
+                            value = quantidade_aguard["QNTD"].values[0],
+                            title = {'text': ""})
                         )
-
+                        fig_aguar_bullet.update_layout( 
+                            width=300, # largura em pixels 
+                            height=150, # altura em pixels 
+                            margin=dict(l=0, r=0, t=0, b=50)
+                        )
                         st.plotly_chart(fig_aguar_bullet)
                     
                     with col14:
@@ -209,7 +227,7 @@ def acompanhamento():
                     st.plotly_chart(fig_balcao_4, key="CONFERENCIA")
 
             
-            col31, col32 = st.columns(2)
+            col31, col41 = st.columns(2)
 
             with col31:
                 with st.container(border=True, height=380, key="Faturamento"): 
@@ -228,12 +246,10 @@ def acompanhamento():
                             gb3.configure_column(old_name, header_name=new_name, cellStyle={"font-size": "16px"}, maxWidth=120, minWidth=120)
                        
                     gridOptions_2 = gb3.build()
-                    AgGrid(faturamento, gridOptions=gridOptions_2, height=340, enable_enterprise_modules=True) 
-            with col32:
-                pass
+                    AgGrid(faturamento, gridOptions=gridOptions_2, height=300, enable_enterprise_modules=True) 
 
-            col43, col44 = st.columns(2)
-            with col43:
+            col41, col42 = st.columns(2)
+            with col41:
                 with st.container(border=True, height=380, key="PENDENTE_ENTREGA"): 
                     st.markdown("Aguardando Entrega - Motoboy & Despache")
                     motoboy_entrega = acompanhamento_entrega(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
@@ -262,7 +278,11 @@ def acompanhamento():
                     height:0px;
             }
             </style>""",unsafe_allow_html=True)
-
+        except AttributeError as e:
+            if "'streamlit.components.v1' has no attribute 'components'" in str(e):
+                pass  # Ignora o erro específico
+            else:
+                raise  # Relança o erro se for outro AttributeError
         except Exception as e:
             print(f"Erro Processo: {e}")
     else:
