@@ -19,7 +19,7 @@ def gerar_audio():
 
         if st.button("Gerar Áudio"):
             # Converte o texto para fala
-            tts = gTTS(text, lang="pt",) 
+            tts = gTTS(text, lang="pt") 
 
             # Salva temporariamente o áudio
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:

@@ -14,7 +14,8 @@ def clear_text_input():
         <style>
             div[data-testid="stVerticalBlockBorderWrapper"]  {
                 position: relative;
-                top: 10px;    
+                top: 10px;
+                
             }
             #ds_secao  {
                 margin: 0;    

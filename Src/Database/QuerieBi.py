@@ -73,7 +73,7 @@ def total_pedidos(dt_inicio, dt_fim):
 
 def total_pedidos_pecas_separador(dataInicio, DataFim):
     _querie = f"""
-    SELECT FIRST 4
+    SELECT FIRST 10
         CAST(ES.NM_USUARIO AS VARCHAR(20))NM_USUARIO,
         COUNT(DISTINCT P.NR_PEDIDO) N_PEDIDOS,
         SUM(COALESCE(IP.PS_PEDIDO, IP.QT_PEDIDA)) QT_ITEM   

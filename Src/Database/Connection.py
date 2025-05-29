@@ -66,16 +66,6 @@ class FirebirdDB:
             
             if df.empty:
                 df = DataFrame(columns=df.columns)
-                if result:
-                    for col in df.columns:
-                        if df[col].dtype == 'int':
-                            df[col] = [0]
-                        elif df[col].dtype == 'float':
-                            df[col] = [0.00]
-                        elif df[col].dtype == 'object': 
-                            df[col] = ["-"]
-                        else:
-                            df[col] = [NaT]  # Caso para outros tipos de dados, como datas, etc.
             return df
         except Exception as e:
             print(f"Erro ao consultar: {e}")

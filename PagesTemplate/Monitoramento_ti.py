@@ -61,7 +61,7 @@ def monitoramento_ti():
 
     # --- Streamlit App ---
     st.title("Monitoramento de Rede")
-    st.info("Eixo Y: Tempo de resposta (ms) — servidor 10.0.10.25 || Eixo X: Tempo decorrido (s) — intervalo de 30 segundos")
+    st.info("Eixo Y: Tempo de resposta (ms) — servidor 10.0.10.25 || Eixo X: Quantidade de solicitações — intervalo de 30 solicitações")
 
     with st.sidebar:
         col1, col2 = st.columns(2)

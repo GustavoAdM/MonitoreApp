@@ -5,24 +5,24 @@ chcp 1252 >nul
 rem Define a pasta principal
 set "main_folder=C:\AplicativosBelenzier\MonitoreBy"
 
-echo ##### Inicinando limpeza cache #####
+echo ########## Inicinando limpeza cache 
 
-rem Percorre todas as subpastas e verifica a existï¿½ncia de __pycache__
+rem Percorre todas as subpastas e verifica a existência de __pycache__
 for /r "%main_folder%" %%d in (.) do (
     if exist "%%d\__pycache__" (
         rd /s /q "%%d\__pycache__"
     )
 )
 
-echo ##### Operaï¿½ï¿½o de limpeza cache concluï¿½da! #####
+echo ########## Operação de limpeza cache concluída!
 
-REM Verifica se a porta 8501 estï¿½ em uso
+REM Verifica se a porta 8501 está em uso
 netstat -an | find ":8501" | find "LISTENING" >nul
 if %errorlevel% == 0 (
-    echo Streamlit jï¿½ estï¿½ ativo na porta 8501
+    echo Streamlit já está ativo na porta 8501
     exit
 ) else (
-    echo ########## Streamlit nï¿½o estï¿½ ativo. Iniciando...
+    echo ########## Streamlit não está ativo. Iniciando...
     cd C:\AplicativosBelenzier\MonitoreBy
     call .\Core\Scripts\activate
     streamlit run .\MonitoreBy.py

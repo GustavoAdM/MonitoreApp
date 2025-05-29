@@ -7,6 +7,8 @@ from plotly.graph_objects import Figure, Indicator
 
 
 def acompanhamento():
+    
+
     st_autorefresh(interval=10000, key="ACOMPANHAMENTO_VIEW")
 
     with st.sidebar:
@@ -16,6 +18,11 @@ def acompanhamento():
         vendedor = st.number_input("Consultar Vendedor", value=0)
 
     if empresa is not None:
+    
+        control_emp = f"controle_sound_{empresa}"
+        if control_emp not in st.session_state:
+            st.session_state[control_emp] = 0
+
         col1, col2= st.columns(2)
         try:
 
@@ -26,6 +33,19 @@ def acompanhamento():
 
                     separacao_df = acompanhamento_separacao(cd_empresa=empresa, pedidos=pedidos, cd_vendedor=vendedor)
                     separacao_os = acompanhamento_os(cd_empresa=empresa)
+
+                    sound_qtde = len(separacao_df) + len(separacao_os)
+
+                    if sound_qtde > st.session_state.get(control_emp):
+                        st.session_state[control_emp] = sound_qtde
+                        audio_html = """
+                            <audio autoplay>
+                                <source src="https://www.soundjay.com/buttons/sounds/button-8.mp3" type="audio/mpeg">
+                            </audio>
+                            """
+                        st.markdown(audio_html, unsafe_allow_html=True)
+                    else:
+                        st.session_state[control_emp] = sound_qtde
   
                     gb = GridOptionsBuilder.from_dataframe(separacao_df)
                     gb_os = GridOptionsBuilder.from_dataframe(separacao_os)
@@ -278,6 +298,7 @@ def acompanhamento():
                     height:0px;
             }
             </style>""",unsafe_allow_html=True)
+
         except AttributeError as e:
             if "'streamlit.components.v1' has no attribute 'components'" in str(e):
                 pass  # Ignora o erro específico
