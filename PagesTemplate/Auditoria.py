@@ -1,8 +1,9 @@
 import streamlit as st
 from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_vendedor, listar_separador, monitore_tempo, auditoria_os
+from Src.Database.QuerieBi import tempo_total_separacao
 from st_aggrid import AgGrid, GridOptionsBuilder
 from plotly.express import line
-from plotly.graph_objects import Bar,Line
+from plotly.graph_objects import Bar,Line, Figure, Indicator
 
 def auditoria():
     st.markdown("""
@@ -134,9 +135,37 @@ def auditoria():
                     legend_title="Legenda",
                     height=500
                 )
-
                 # Mostra no Streamlit
                 st.plotly_chart(fig, use_container_width=True)
+        with st.container(border=True, key="indicador_separacao"):
+            col1_1, col1_2, col1_3 = st.columns(3)
+            with col1_1:
+                tempo_separacao = tempo_total_separacao(empresa=cod_empresa, data_inicio=data_inicio, data_fim=data_fim)
+                fig_balcao = Figure(Indicator(
+                    mode = "gauge+number",
+                    value = tempo_separacao["MEDIA_TOTAL_SEPARACAO"].values[0],
+                    title = {'text': "T.M Separação"},
+                    gauge = {
+                        'axis': {
+                            'range': [0, 60],
+                            'tickmode': 'linear',
+                            'dtick': 5  # Mostra os ticks de 5 em 5
+                        },
+                        'steps': [
+                            {'range': [0, 5], 'color': "green"},
+                            {'range': [5, 10], 'color': "yellow"},
+                            {'range': [10, 60], 'color': "red"}
+                        ],
+                        'bar': {'color': "darkblue"}}
+                ))
+                # Atualize o layout para definir o tamanho 
+                fig_balcao.update_layout( 
+                    width=250, # largura em pixels 
+                    height=200, # altura em pixels 
+                    margin=dict(l=20, r=20, t=50, b=5)
+                )
+                st.plotly_chart(fig_balcao,key="separacao")
+
     except Exception as e:
         print(f"Erro Auditoria: {e}")
 

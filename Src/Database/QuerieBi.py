@@ -11,12 +11,13 @@ def nome_separadores(dtInicio, dtFim):
     return db.read_sql(query=_querie)
 
 
-def separacao_pedido_geral(dt_incio:str, dt_fim:str,separador:list):
+def separacao_pedido_geral(dt_incio: str, dt_fim: str, separador: list):
     """Pedidos feito na mesma semana (Segunda a Sexta) da semana atual"""
     sql_separador = ""
 
     if separador != []:
-        string_separador = ", ".join([f"'{elemento}'" for elemento in separador])
+        string_separador = ", ".join(
+            [f"'{elemento}'" for elemento in separador])
         sql_separador = f"AND ES.NM_USUARIO IN ({string_separador})"
 
     _querie = f"""
@@ -49,6 +50,7 @@ def separacao_pedido_geral(dt_incio:str, dt_fim:str,separador:list):
     ORDER BY X.DT_PEDIDO, NM_USUARIO
     """
     return db.read_sql(query=_querie)
+
 
 def total_pedidos(dt_inicio, dt_fim):
     _querie = f"""
@@ -93,12 +95,14 @@ def total_pedidos_pecas_separador(dataInicio, DataFim):
     """
     return db.read_sql(query=_querie)
 
+
 def pedidos_mais_30s(dataInicio, dataFim, separador):
     """Pedidos com menos de 30m segundos"""
     sql_separador = ""
 
     if separador != []:
-        string_separador = ", ".join([f"'{elemento}'" for elemento in separador])
+        string_separador = ", ".join(
+            [f"'{elemento}'" for elemento in separador])
         sql_separador = f"AND ES.NM_USUARIO IN ({string_separador})"
 
     _querie = f"""
@@ -114,5 +118,65 @@ def pedidos_mais_30s(dataInicio, dataFim, separador):
         AND ES.STATUS = 'F'
         AND DATEDIFF(SECOND, ES.DT_INICIO, ES.DT_FIM) >= 30
         {sql_separador}
+    """
+    return db.read_sql(query=_querie)
+
+
+def tempo_total_separacao(empresa: int, data_inicio: str, data_fim: str):
+    """
+    Indicador local: Auditoria
+    Explicação: Contabiliza o tempo médio desde a abertura do pedido com o tipo infomado ate a finalização pelo separador.
+    - Pegar a data e hora em que o pedido foi feito de forma "Correta" com o tipo de pedido informado ou a data e hora que aparece na tela de separação.
+    - Media e o tempo dividido pelo total de PEDIDO separado para uma media de tempo por pedido
+    - Não pega pedidos com menos de 10s, iniciou e finalizou de forma quase imediata não e considerado
+
+    """
+    _querie = f"""
+
+    SELECT
+        SUM(ESPERA) / COUNT(DISTINCT NR_PEDIDO) MEDIA_ESPERA,
+        SUM(SEPARACAO) / COUNT(DISTINCT NR_PEDIDO) MEDIA_SEPARACAO,
+        SUM(CONFERENCIA) / COUNT(DISTINCT NR_PEDIDO) MEDIA_CONFERENCIA,
+        SUM(TOTAL_SEPARACAO) / COUNT(DISTINCT NR_PEDIDO) MEDIA_TOTAL_SEPARACAO
+    FROM (
+        SELECT
+            DATEDIFF(MINUTE, ESP.DT_PEDIDO, EX.DT_INICIO ) ESPERA,
+            0 SEPARACAO,
+            0 TOTAL_SEPARACAO,
+            DATEDIFF(MINUTE, EX.DT_FIM, EX.DTFIM_CONF) CONFERENCIA,
+            P.NR_PEDIDO
+        FROM PEDIDO P
+        INNER JOIN EXTEND_SEPARACAO_TEMPO ESP ON (ESP.CD_EMPRESA = P.CD_EMPRESA
+            AND ESP.NR_PEDIDO = P.NR_PEDIDO
+            AND ESP.TP_PEDIDO = P.TP_PEDIDO)
+        INNER JOIN EXTEND_SEPARACAO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
+            AND EX.NR_PEDIDO = P.NR_PEDIDO)
+        WHERE P.CD_EMPRESA = {empresa}
+            AND P.DT_PEDIDO BETWEEN '{data_inicio}' AND '{data_fim}'
+            AND P.TP_PEDIDO = 'S'
+            AND EX.STATUS = 'F'
+            AND P.CD_TIPOPEDIDO <> 3
+        
+        UNION ALL
+        
+        SELECT
+            0 ESPERA,
+            DATEDIFF(MINUTE, EX.DT_INICIO, EX.DT_FIM) SEPARACAO,
+            DATEDIFF(MINUTE, ESP.DT_PEDIDO, EX.DT_FIM) TOTAL_SEPARACAO,
+            0 CONFERENCIA,
+            P.NR_PEDIDO
+        FROM PEDIDO P
+        INNER JOIN EXTEND_SEPARACAO_TEMPO ESP ON (ESP.CD_EMPRESA = P.CD_EMPRESA
+            AND ESP.NR_PEDIDO = P.NR_PEDIDO
+            AND ESP.TP_PEDIDO = P.TP_PEDIDO)
+        INNER JOIN EXTEND_SEPARACAO EX ON (EX.CD_EMPRESA = P.CD_EMPRESA
+            AND EX.NR_PEDIDO = P.NR_PEDIDO)
+        WHERE P.CD_EMPRESA = {empresa}
+            AND P.DT_PEDIDO BETWEEN '{data_inicio}' AND '{data_fim}'
+            AND P.TP_PEDIDO = 'S'
+            AND EX.STATUS = 'F'
+            AND P.CD_TIPOPEDIDO <> 3
+            AND DATEDIFF(SECOND, CAST(P.DT_PEDIDO||' '||P.HR_PEDIDO AS TIMESTAMP), EX.DT_FIM) > 10
+        )
     """
     return db.read_sql(query=_querie)
