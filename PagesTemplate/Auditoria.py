@@ -3,7 +3,7 @@ from Src.Database.Queries import auditoria_separacao, listar_clientes, listar_ve
 from Src.Database.QuerieBi import tempo_total_separacao
 from st_aggrid import AgGrid, GridOptionsBuilder
 from plotly.express import line
-from plotly.graph_objects import Bar,Line, Figure, Indicator
+from plotly.graph_objects import Bar, Figure, Indicator
 
 def auditoria():
     st.markdown("""
