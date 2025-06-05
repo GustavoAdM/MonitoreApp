@@ -46,6 +46,7 @@ def acompanhamento():
                         st.markdown(audio_html, unsafe_allow_html=True)
                     else:
                         st.session_state[control_emp] = sound_qtde
+                    
   
                     gb = GridOptionsBuilder.from_dataframe(separacao_df)
                     gb_os = GridOptionsBuilder.from_dataframe(separacao_os)
