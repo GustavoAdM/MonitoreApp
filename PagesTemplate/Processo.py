@@ -43,7 +43,7 @@ def acompanhamento():
                                 <source src="https://www.soundjay.com/buttons/sounds/button-8.mp3" type="audio/mpeg">
                             </audio>
                             """
-                        st.markdown(audio_html, unsafe_allow_html=True)
+                        #st.markdown(audio_html, unsafe_allow_html=True)
                     else:
                         st.session_state[control_emp] = sound_qtde
                     
