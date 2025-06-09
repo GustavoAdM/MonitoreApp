@@ -180,3 +180,118 @@ def tempo_total_separacao(empresa: int, data_inicio: str, data_fim: str):
         )
     """
     return db.read_sql(query=_querie)
+
+
+def Qtrasnferencia_dist(cd_empresa: int):
+
+
+    _querie = f"""
+    WITH ESTOQ_LOJAS
+    AS (
+        SELECT
+            I.CD_ITEM CD_ITEM_LOJAS, CAST(E.QT_ESTOQUE AS NUMERIC(15,2)) QT_EST_ATUAL,
+            COALESCE(I.QT_ESTOQUEMIN, 0) MIN_EST_LOJAS, I.QT_ESTOQUEMAX MAS_EST_LOJAS,
+            ABS(E.QT_ESTOQUE - COALESCE(I.QT_ESTOQUEMIN, 0)) QT_SOLICITADA
+        FROM ITEM I
+        INNER JOIN ITEMLOCAL IL ON (IL.CD_ITEM = I.CD_ITEM
+            AND IL.CD_TIPOLOCAL = CASE {cd_empresa}
+                                    WHEN 52 THEN 2
+                                    WHEN 5 THEN 3
+                                  END  )
+        INNER JOIN ESTOQUE E ON (E.CD_EMPRESA = {cd_empresa}
+            AND E.CD_ITEM = IL.CD_ITEM
+            AND E.CD_TIPOLOCAL = IL.CD_TIPOLOCAL
+            AND E.CD_LOCAL = IL.CD_LOCAL)
+        WHERE I.CD_GRUPO BETWEEN 40 AND 49
+            AND I.CD_SECAO IS NOT NULL
+            AND E.QT_ESTOQUE >= 0
+            AND E.QT_ESTOQUE < COALESCE(I.QT_ESTOQUEMIN, 0)
+
+    ),
+    ESTOQ_DIST
+    AS (
+        SELECT
+            I.CD_ITEM CD_DIST, E.QT_ESTOQUE, I.DS_ITEM,
+            I.QT_ESTOQUEMIN MIN_EST_LOJAS, I.QT_ESTOQUEMAX MAS_EST_LOJAS,
+            (E.QT_ESTOQUE - COALESCE(I.QT_ESTOQUEMIN, 0)) QT_DISPONIVEL,
+            CASE CHAR_LENGTH(I.CD_ITEM)
+                WHEN 7 THEN I.CD_ITEM - 3000000
+                WHEN 8 THEN I.CD_ITEM - 30000000
+                WHEN 9 THEN I.CD_ITEM - 300000000
+            END CD_LOJAS
+        FROM ITEM I
+        INNER JOIN ITEMLOCAL IL ON (IL.CD_ITEM = I.CD_ITEM
+            AND IL.CD_TIPOLOCAL = 7)
+        INNER JOIN ESTOQUE E ON (E.CD_EMPRESA = 7
+            AND E.CD_ITEM = IL.CD_ITEM
+            AND E.CD_TIPOLOCAL = IL.CD_TIPOLOCAL
+            AND E.CD_LOCAL = IL.CD_LOCAL)
+        WHERE I.CD_GRUPO BETWEEN 70 AND 79
+            AND I.CD_SECAO IS NOT NULL
+            AND E.QT_ESTOQUE > COALESCE(I.QT_ESTOQUEMIN, 0)
+    ),
+    NOTA_VENDA
+    AS (
+        SELECT
+            IT.CD_ITEM, COALESCE(IT.PS_ITEMNOTA, IT.QT_ITEMNOTA) QT_ITEM,
+            N2.NR_NOTAFOR
+        FROM NOTA N
+        INNER JOIN ITEMNOTA IT ON (IT.CD_EMPRESA = N.CD_EMPRESA
+            AND IT.NR_LANCAMENTO = N.NR_LANCAMENTO
+            AND IT.TP_NOTA = N.TP_NOTA
+            AND IT.CD_SERIE = N.CD_SERIE)
+        LEFT JOIN NOTA N2 ON (N2.CD_EMPRESA = 52
+            AND N2.NR_NOTAFOR = N.NR_NOTAFISCAL
+            AND N2.CD_SERIEFOR = N.CD_SERIE
+            AND N2.TP_NOTA = 'E'
+            AND N2.ST_NOTA = 'V'
+            AND N2.DT_EMISSAO BETWEEN CURRENT_DATE - 10 AND CURRENT_DATE)
+        WHERE N.CD_EMPRESA = 7
+            AND N.ST_NOTA = 'V'
+            AND N.TP_NOTA = 'S'
+            AND N.CD_PESSOA = 41035
+            AND N.DT_EMISSAO BETWEEN CURRENT_DATE - 10 AND CURRENT_DATE
+
+    )
+    SELECT
+        D.CD_DIST, D.DS_ITEM,
+        D.QT_DISPONIVEL,
+        (E.QT_SOLICITADA - COALESCE(N.QT_ITEM, 0)) QT_SOLICITADA
+    FROM ESTOQ_DIST D
+    INNER JOIN ESTOQ_LOJAS E ON (E.CD_ITEM_LOJAS = D.CD_LOJAS)
+    LEFT JOIN NOTA_VENDA N ON (N.CD_ITEM = D.CD_DIST)
+    WHERE  D.QT_DISPONIVEL >= E.QT_SOLICITADA
+        AND (E.QT_SOLICITADA - COALESCE(N.QT_ITEM, 0)) > 0
+
+
+
+
+    """
+    return db.read_sql(query=_querie)
+
+
+def Qpendente_transfer():
+    _querie = f"""
+    SELECT
+        IT.CD_ITEM, I.DS_ITEM, COALESCE(IT.PS_ITEMNOTA, IT.QT_ITEMNOTA) QT_ITEM,
+        N.NR_NOTAFISCAL
+    FROM NOTA N
+    INNER JOIN ITEMNOTA IT ON (IT.CD_EMPRESA = N.CD_EMPRESA
+        AND IT.NR_LANCAMENTO = N.NR_LANCAMENTO
+        AND IT.TP_NOTA = N.TP_NOTA
+        AND IT.CD_SERIE = N.CD_SERIE)
+    INNER JOIN ITEM I ON (I.CD_ITEM = IT.CD_ITEM)
+    LEFT JOIN NOTA N2 ON (N2.CD_EMPRESA = 52
+        AND N2.NR_NOTAFOR = N.NR_NOTAFISCAL
+        AND N2.CD_SERIEFOR = N.CD_SERIE
+        AND N2.TP_NOTA = 'E'
+        AND N2.ST_NOTA = 'V'
+        AND N2.DT_EMISSAO BETWEEN CURRENT_DATE - 10 AND CURRENT_DATE)
+    WHERE N.CD_EMPRESA = 7
+        AND N.ST_NOTA = 'V'
+        AND N.TP_NOTA = 'S'
+        AND N.CD_PESSOA = 41035
+        AND N.DT_EMISSAO BETWEEN CURRENT_DATE - 10 AND CURRENT_DATE
+        AND N2.NR_NOTAFOR IS NULL
+    """
+    return db.read_sql(query=_querie)

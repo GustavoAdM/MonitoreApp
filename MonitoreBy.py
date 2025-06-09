@@ -3,7 +3,7 @@ from PagesTemplate.Auditoria import auditoria
 from PagesTemplate.Processo import acompanhamento
 from PagesTemplate.ViewProcesso import view_processo
 from PagesTemplate.estoqueWMS import estoque_wms
-from PagesTemplate.Monitoramento_ti import monitoramento_ti
+from PagesTemplate.trasnf_dist import dist_transferencia
 import warnings
 
 warnings.simplefilter(action='ignore', category=UserWarning)
@@ -22,6 +22,7 @@ menu = st.navigation([st.Page(acompanhamento, title="Acompanhamento"),
                       st.Page(auditoria, title="Auditoria"), 
                       st.Page(view_processo, title="View Separação"),
                       st.Page(estoque_wms, title="Estoque WMS"),
+                      st.Page(dist_transferencia, title="Transferencia Distribuidora")
                       #st.Page(monitoramento_ti, title="Monitoramento TI"),
                       #st.Page(gerar_audio, title="Gerar Audio"),
                       ])
