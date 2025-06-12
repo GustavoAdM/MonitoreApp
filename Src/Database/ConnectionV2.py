@@ -62,5 +62,27 @@ class FirebirdDB:
             self.logger.error(f"Erro ao ler a consulta SQL com pandas: {e}")
             return None
 
+    def execute_UDI(self, query, params=None):
+        """Executa uma consulta de inserção, atualização ou exclusão"""
+        try:
+            with self.connect() as conn:
+                cursor = conn.cursor()
+                try:
+                    if params:
+                        cursor.execute(query, params)
+                    else:
+                        cursor.execute(query)
+                    conn.commit()
+                except Exception as e:
+                    self.logger.error(f"Erro ao executar a consulta de UDI: {e}")
+                    conn.rollback()
+                    return e
+                finally:
+                    cursor.close()
+        except Exception as e:
+            self.logger.error(f"Erro ao abrir conexão para UDI: {e}")
+            return e
+
+
 # Exemplo de uso
 db = FirebirdDB()
